@@ -100,9 +100,9 @@ class ShortScore():
     def ly2shortScore(self, text):
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d*)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>/\g<2>:\g<3>', text)
         text = re.sub(r'(\]:\d+/\d+):\s', r'\g<1> ', text)
-        text = re.sub(r'\\grace\s*([a-gis]+\d*)', r'\g<1>:g', text)
-        text = re.sub(r'\\grace\s*\{([^\}]+)}', r'[\g<1>]:g', text)
-        text = re.sub(r'([>a-gis\d])\s*\\glissando\s*([a-gis<])', r'\g<1>:gl:\g<2>', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
+        text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+\b\)?)', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
         return text
 
@@ -308,9 +308,9 @@ class ShortScore():
 
     def shortScoreMusicToLy(self, text):
         text = re.sub(r'\[([^\]]+)\]:(\d+)/(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
-        text = re.sub(r'([a-gis\d>]):gl:([<a-gis])', r"\g<1> \\glissando \g<2>", text)
-        text = re.sub(r'\b([a-gis\d]+):g', r"\\grace \g<1>", text)
-        text = re.sub(r'\[([^\]]+)\]:g', r"\\grace {\g<1>}", text)
+        text = re.sub(r'([a-gis\d>]):gl:(\w+)\b', r"\g<1> \\glissando( \g<2>)", text)
+        text = re.sub(r'\b([a-gis\d]+):g', r"\\acciaccatura \g<1>", text)
+        text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
         text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
         text = re.sub(r' +', ' ', text)
         return text
