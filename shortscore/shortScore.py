@@ -8,6 +8,7 @@ class ShortScore():
     Simple import from ly file.
     """
     def __init__(self, lyfile):
+        self.unit = '1'
         self.lyfile = lyfile
         glob, parts = self.getPartNamesFromLy()
         self.score = {}
@@ -215,6 +216,10 @@ class ShortScore():
             if data:
                 key, val = tuple(data.split(":"))
                 globDict[key] = val
+        if 'u' in globDict:
+            self.unit = globDict['u']
+        else:
+            globDict['u'] = self.unit
         return globDict
 
     def globalDataToStr(self, globDict):
