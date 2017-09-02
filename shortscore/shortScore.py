@@ -40,6 +40,13 @@ class ShortScore():
             t = re.search(r"\\tempo\s*([\w\W]+)\b", g)
             if t:
                 globDict['t'] = t.group(1)
+            rm = re.search(r"\\mark\s*([\w\W]+)\b", g)
+            if rm:
+                mark = rm.group(1)
+                if mark == r'\default':
+                    globDict['rm'] = 'd'
+                else:
+                    globDict['rm'] = mark
             restmatch = re.findall(r"s([\d\*\.]+?)(\d+)\b", g)
             if restmatch:
                 globDict['u'] = restmatch[0][0][:-1]
@@ -68,7 +75,6 @@ class ShortScore():
                     end = i
                     return start, end
 
-
     def getPartContentFromLy(self, partname):
         with open(self.lyfile) as r:
             text = r.read()
@@ -78,7 +84,7 @@ class ShortScore():
             start, end = self.getBracketPositions(text)
             return text[start + 1:end - 1]
 
-    def replacePartContent(self, partname, newContent):
+    def replaceLyPartContent(self, partname, newContent):
         with open(self.lyfile) as r:
             text = r.read()
         pos = text.find(partname)
@@ -91,17 +97,20 @@ class ShortScore():
             w.write(text)
 
     def ly2shortScore(self, text):
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d*)\s*\{([^\}]+)}', r'[\g<4>]\g<1>:\g<2>:\g<3>', text)
-        text = re.sub(r'(\]\d+:\d+):\s', r'\g<1> ', text)
+        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d*)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>/\g<2>:\g<3>', text)
+        text = re.sub(r'(\]:\d+/\d+):\s', r'\g<1> ', text)
+        text = re.sub(r'\\grace\s*([a-gis]+\d*)', r'\g<1>:g', text)
+        text = re.sub(r'\\grace\s*\{([^\}]+)}', r'[\g<1>]:g', text)
+        text = re.sub(r'([>a-gis\d])\s*\\glissando\s*([a-gis<])', r'\g<1>:gl:\g<2>', text)
+        text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
         return text
 
     def parseLyPart(self, partname, part):
         for b in part.split("|"):
-            # print(b)
             rests = [int(r) for r in re.findall(r"(?:R|s)[\d\*\.]+?(\d+)\b", b)]
             for r in rests:
                 self.score[partname] += [''] * r
-            b = re.sub(r"(?:R|s)[\d\*\.]+", '', b)
+            b = re.sub(r"\b(?:R|s)[\d\*\.]+", '', b)
             b = self.ly2shortScore(b)
             if b.strip():
                 self.score[partname].append(b.strip())
@@ -120,6 +129,12 @@ class ShortScore():
         if len(self.score[self.glob]) < max:
             r = max - len(self.score[self.glob])
             self.score[self.glob] += [''] * r
+        self.setBarnrInGlob()
+
+    def setBarnrInGlob(self):
+        for barnr, globDict in enumerate(self.score[self.glob]):
+            if globDict:
+                globDict['barnr'] = barnr
 
     def createPartDefFromParts(self, shortScoreFile):
         with open(shortScoreFile) as r:
@@ -164,7 +179,7 @@ class ShortScore():
         partDefDict = self.readPartDef(partDef, False)
         # Read shortscore
         bars = ssc.split("|")
-        for b in bars:
+        for barnr, b in enumerate(bars):
             if not b.strip():
                 continue
             # Add empty bar to each part
@@ -172,7 +187,7 @@ class ShortScore():
                 self.score[k].append('')
             if '@' in b:
                 glob, b = tuple(b.split("@"))
-                self.score[self.glob][-1] = self.parseGlobalData(glob)
+                self.score[self.glob][-1] = self.parseGlobalData(glob, barnr)
             parts = b.split("/")
 
             for p in parts:
@@ -192,8 +207,9 @@ class ShortScore():
                     except KeyError:
                         print("Error: " + partname + " not found in score!")
 
-    def parseGlobalData(self, glob):
+    def parseGlobalData(self, glob, barnr):
         globDict = {}
+        globDict['barnr'] = barnr
         for data in glob.split(","):
             data = data.strip()
             if data:
@@ -204,11 +220,11 @@ class ShortScore():
     def globalDataToStr(self, globDict):
         globList = []
         for key in globDict:
-            globList.append(":".join([key, globDict[key]]))
+            if key != 'barnr': # Do not write out bar number
+                globList.append(":".join([key, globDict[key]]))
         return ",".join(globList)
 
     def getPartsFromPartDef(self, partDefDict):
-        print(partDefDict)
         parts = []
         for p in self.parts:
             if p in partDefDict:
@@ -232,7 +248,7 @@ class ShortScore():
             w.write("@@@\n")
             for barnr, bar in enumerate(self.score[self.glob]):
                 if bar:
-                    w.write(self.globalDataToStr(bar) + " @\n")
+                    w.write(self.globalDataToStr(bar) + "@\n")
                 barDict = {}
                 for part in self.parts:
                     if part in partDefDict:
@@ -264,12 +280,30 @@ class ShortScore():
             output.append(r"\tempo " + globDict['t'])
         if 'k' in globDict:
             output.append(r"\key " + globDict['k'])
+        if 'rm' in globDict:
+            if globDict['rm'] == 'd':
+                output.append(r"\mark \default")
+            else:
+                output.append(r"\mark " + globDict['rm'])
+        if 'd' in globDict:
+            self.applyGloballyToParts(globDict['d'], globDict['barnr'])
         if 'u' in globDict:
             output.append("s" + globDict['u'] + "*")
         return "\n".join(output)
 
+    def applyGloballyToParts(self, keyword, barnr):
+        for p in self.parts:
+            music = self.score[p][barnr].split()
+            if music:
+                music[0] += ":" + keyword
+                self.score[p][barnr] = " ".join(music)
+
     def shortScoreMusicToLy(self, text):
-        text = re.sub(r'\[([^\]]+)\](\d+):(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
+        text = re.sub(r'\[([^\]]+)\]:(\d+)/(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
+        text = re.sub(r'\b([a-gis\d]+):g', r"\\grace \g<1>", text)
+        text = re.sub(r'\[([^\]]+)\]:g', r"\\grace {\g<1>}", text)
+        text = re.sub(r'([a-gis\d>]):gl:([<a-gis])', r"\g<1> \\glissando \g<2>", text)
+        text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
         text = re.sub(r' +', ' ', text)
         return text
 
@@ -286,7 +320,7 @@ class ShortScore():
             else:
                 m += 1
         glob += str(m) + "\n"
-        self.replacePartContent(self.glob, glob)
+        self.replaceLyPartContent(self.glob, glob)
 
         for part in self.parts:
             multibar = False
@@ -308,4 +342,4 @@ class ShortScore():
                         multibar = 1
             if multibar:
                 content.append(restStr + str(multibar))
-            self.replacePartContent(part, self.shortScoreMusicToLy("\n".join(content)))
+            self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
