@@ -286,16 +286,19 @@ class ShortScore():
             else:
                 output.append(r"\mark " + globDict['rm'])
         if 'd' in globDict:
-            self.applyGloballyToParts(globDict['d'], globDict['barnr'])
+            self.applyGloballyToAllLyParts(":" + globDict['d'], globDict['barnr'])
+        # Handle rests
         if 'u' in globDict:
             output.append("s" + globDict['u'] + "*")
         return "\n".join(output)
 
-    def applyGloballyToParts(self, keyword, barnr):
+    def applyGloballyToAllLyParts(self, text, barnr, after=False):
         for p in self.parts:
+            if after:
+                self.score[p][barnr] += text
             music = self.score[p][barnr].split()
             if music:
-                music[0] += ":" + keyword
+                music[0] += text
                 self.score[p][barnr] = " ".join(music)
 
     def shortScoreMusicToLy(self, text):
