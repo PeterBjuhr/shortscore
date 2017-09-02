@@ -11,12 +11,15 @@ class ShortScore():
         self.unit = '1'
         self.lyfile = lyfile
         glob, parts = self.getPartNamesFromLy()
-        self.score = {}
+        self.parts = parts
+        self.initScore()
         if glob:
             self.score[glob] = []
-        self.glob = glob
-        self.parts = parts
-        for p in parts:
+            self.glob = glob
+
+    def initScore(self):
+        self.score = {}
+        for p in self.parts:
             self.score[p] = []
 
     def getPartNamesFromLy(self):
@@ -102,7 +105,7 @@ class ShortScore():
         text = re.sub(r'(\]:\d+/\d+):\s', r'\g<1> ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
-        text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?)', r'\g<1>:gl:\g<2>', text)
+        text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
         return text
 
@@ -117,7 +120,9 @@ class ShortScore():
                 self.score[partname].append(b.strip())
 
     def readLyVars(self):
+        self.initScore()
         if self.glob:
+            self.score[self.glob] = []
             self.parseLyGlob(self.getPartContentFromLy(self.glob))
         else:
             self.glob = "Glob"
@@ -166,9 +171,10 @@ class ShortScore():
         return partDefDict
 
     def readShortScore(self, shortScoreFile):
+        self.initScore()
         if not self.glob:
             self.glob = "Glob"
-            self.score[self.glob] = []
+        self.score[self.glob] = []
         with open(shortScoreFile) as r:
             text = r.read()
         # Read part definition
