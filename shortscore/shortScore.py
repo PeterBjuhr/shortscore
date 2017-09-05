@@ -102,7 +102,7 @@ class ShortScore():
 
     def ly2shortScore(self, text):
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d*)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>\\\g<2>:\g<3>', text)
-        text = re.sub(r'(\]:\d+/\d+):\s', r'\g<1> ', text)
+        text = re.sub(r'(\]:\d+\\\d+):\s', r'\g<1> ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
@@ -202,17 +202,42 @@ class ShortScore():
                     continue
                 data = p.split("::")
                 try:
-                    partnames = data[0].strip()
+                    parts = data[0].strip()
                     music = data[1].strip()
                 except IndexError:
                     print(data)
-                for partname in [p.strip() for p in partnames.split(",")]:
+                partList = [p.strip() for p in parts.split(",")]
+                if parts.strip().startswith('^'):
+                    partMusic = self.explodeChords(music, len(partList))
+                    partList[0] = partList[0][1:]
+                else:
+                    partMusic = [music] * len(partList)
+                for pnr, partname in enumerate(partList):
                     try:
                         if partname in partDefDict:
                             partname = partDefDict[partname]
-                        self.score[partname][-1] = music
+                        self.score[partname][-1] = partMusic[pnr]
                     except KeyError:
                         print("Error: " + partname + " not found in score!")
+
+    def explodeChords(self, music, nrOfParts):
+        parts = [''] * nrOfParts
+        start = 0
+        for n, t in enumerate(music):
+            if t == '<':
+                parts = [p + music[start:n] for p in parts]
+                start = n + 1
+            elif t == '>':
+                try:
+                    dura = music[n + 1:].split()[0]
+                except IndexError:
+                    dura = ''
+                if not dura.isdigit():
+                    dura = ''
+                for i, c in enumerate(reversed(music[start:n].split())):
+                    parts[i] += c + dura + " "
+                start = n + 1 + len(dura)
+        return [p + music[start:] for p in parts]
 
     def parseGlobalData(self, glob, barnr):
         globDict = {}
