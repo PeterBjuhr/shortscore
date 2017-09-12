@@ -339,11 +339,11 @@ class ShortScore():
 
     def shortScoreMusicToLy(self, text):
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
-        text = re.sub(r'([a-gis\d>]):gl:(\w+)\b', r"\g<1> \\glissando( \g<2>)", text)
+        text = re.sub(r'([a-gis\d>]):gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
         text = re.sub(r'\b([a-gis\d]+):g', r"\\acciaccatura \g<1>", text)
         text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
         text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
-        text = re.sub(r'\b([\w]+):pizz\b', r'\\instrumentSwitch "pizzstring" \g<1>', text)
+        text = re.sub(r'\b([\w\.\',]+):pizz\b', r'\\instrumentSwitch "pizzstring" \g<1>', text)
         text = re.sub(r'\b([\w]+):(arco\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
         text = re.sub(r' +', ' ', text)
         return text
