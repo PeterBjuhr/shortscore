@@ -111,7 +111,7 @@ class ShortScore():
 
     def parseLyPart(self, partname, part):
         for b in part.split("|"):
-            rests = [int(r) for r in re.findall(r"(?:R|s)[\d\*\.]+?(\d+)\b", b)]
+            rests = [int(r) for r in re.findall(r"\b(?:R|s)[\d\*\.]+?(\d+)\b", b)]
             for r in rests:
                 self.score[partname] += [''] * r
             b = re.sub(r"\b(?:R|s)[\d\*\.]+", '', b)
