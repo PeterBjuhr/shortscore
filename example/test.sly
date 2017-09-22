@@ -1,0 +1,28 @@
+tstFlute = fl
+tstOboe = ob
+tstClarinet = cl
+tstMarUpper = m1
+tstMarLower = m2
+tstPerc = p
+tstHarpRight = h1
+tstHarpLeft = h2
+tstSoloViolin = sVln
+tstViolinI = vln1
+tstViolinII = vln2
+tstViola = vla
+tstCello = vlc
+tstContrabass = cb
+@@@
+u:2.,m:3/4@
+m1:: a2.:32:pp / fl,ob,cl,cb:: a2.:pp |
+m1:: gis2.:32 / fl,ob,cl,cb:: bes2.~ |
+vln1:: bes8:g:gl:a2 bes8 g / fl,ob,cb:: bes2. |
+vln1:: bes2:gl:fis8 g / fl,ob,cb:: bes2. |
+vla:: c8-.:mf e-. f-. g-. e-. g-. / vln1,vln2:: a8-.:mf c-. d-. a-. g-. f-. / vlc,cb:: bes4:mf( a2) |
+rm:d,u:2.@
+sVln:: bes8:g:mf:gl:a2 bes8 g / cb:: bes2 a4 |
+cb:: bes2 g4 / sVln:: bes2:gl:fis8 g |
+cb:: \instrumentSwitch "pizzstring" a8 c d a g f / sVln:: a16-. d,-. c'-. d,-. d'-. d,-. a'-. d,-. g'-. d,-. f-. d-. |
+sVln:: g'2 [a8( cis d)]:3\2 / vlc:: bes2 a4 / cb:: \instrumentSwitch "arcostr" bes2 a4 |
+vla:: a8 cis d e g,4( / sVln:: e2 a,16( cis d e) |
+sVln:: g2. / vla:: bes2.) / vlc,cb:: d2. |
