@@ -235,7 +235,7 @@ class ShortScore():
                 if not dura.isdigit():
                     dura = ''
                 for i, c in enumerate(reversed(music[start:n].split())):
-                    parts[i] += c + dura + " "
+                    parts[i] += c + dura
                 start = n + 1 + len(dura)
         return [p + music[start:] for p in parts]
 

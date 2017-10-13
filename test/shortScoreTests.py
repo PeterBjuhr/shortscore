@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 import unittest
-sys.path.append('../shortscore')
+
 from shortscore.shortScore import ShortScore
 
 class ShortScoreTestCase(unittest.TestCase):
@@ -110,10 +110,10 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(self.shortScore.score['tstSoloViolin'][5], 'bes8:g:mf:gl:a2 bes8 g')
 
     def testExplodeChords(self):
-        music = 'abc<xyz<ABC>3'
-        nrOfParts = 2
+        music = 'a8 <a b c>4 b8'
+        nrOfParts = 3
         result = self.shortScore.explodeChords(music, nrOfParts)
-        expected = ['abcxyzABC3 ', 'abcxyz']
+        expected = ['a8 c4 b8', 'a8 b4 b8', 'a8 a4 b8']
         self.assertEquals(result, expected)
 
     def testParseGlobalData(self):
