@@ -50,9 +50,10 @@ class ShortScoreTestCase(unittest.TestCase):
     def testGetBracketPositions(self):
         self.assertEquals(self.shortScore.getBracketPositions(''), None)
         self.assertEquals(self.shortScore.getBracketPositions('{'), None)
-        # self.assertEquals(self.shortScore.getBracketPositions('{{}'), None)
+        self.assertEquals(self.shortScore.getBracketPositions('{{}'), None)
         self.assertEquals(self.shortScore.getBracketPositions(' {{}'), None)
         self.assertEquals(self.shortScore.getBracketPositions('{}'), (0, 1))
+        self.assertEquals(self.shortScore.getBracketPositions('{{}}'), (0, 3))
         self.assertEquals(self.shortScore.getBracketPositions(' {{}}'), (1, 4))
         self.assertEquals(self.shortScore.getBracketPositions(' a { a } a'), (3, 7))
 

@@ -68,7 +68,7 @@ class ShortScore():
         end = False
         for i, t in enumerate(text):
             if t == '{':
-                if start:
+                if start is not False:
                     stack.append('')
                 else:
                     start = i
