@@ -1,0 +1,43 @@
+ext {
+    dockerImageName = "colsson210/$name"
+    dockerTag = version
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.4'
+}
+
+task dockerRunTest(type: Exec) {
+    group 'Docker'
+    description "Run the shortscore unit tests"
+    commandLine 'docker'
+    args = ['run', '--rm', '--name', 'xyz', "shortscore:1", 'python', '-m', 'unittest', 'test.shortScoreTests']
+}
+
+task dockerStop(type: Exec) {
+    group 'Docker'
+    description 'Stop the jenkins docker container'
+    commandLine 'docker'
+    args = ['rm', '-f', '-v', 'shortscore:1']
+}
+
+task dockerStatus(type: Exec) {
+    group 'Docker'
+    description 'Display the process status of jenkins docker container'
+    commandLine 'docker'
+    args = ['ps', '-a', '-f', "name=shortscore:1"]
+}
+
+task dockerBuild(type: Exec) {
+    group 'Docker'
+    description "Build the docker image, tag as 1."
+    commandLine 'docker'
+    args = ['build', '-t', "shortscore:1", "."]
+}
+
+task dockerPush(type: Exec) {
+    group 'Docker'
+    description 'Push the docker image with the current tag'
+    commandLine 'docker'
+    args = ['push', "$dockerImageName:$dockerTag"]
+}
