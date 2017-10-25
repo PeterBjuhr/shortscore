@@ -1,6 +1,8 @@
 ext {
-    dockerImageName = "colsson210/$name"
-    dockerTag = version
+    dockerImageName = "shortscore"
+    version = "0.2dev"
+    dockerTagName = "$dockerImageName:$version"
+    dockerContainerName = "${dockerImageName}Container"
 }
 
 task wrapper(type: Wrapper) {
@@ -11,33 +13,33 @@ task dockerRunTest(type: Exec) {
     group 'Docker'
     description "Run the shortscore unit tests"
     commandLine 'docker'
-    args = ['run', '--rm', '--name', 'xyz', "shortscore:1", 'python', '-m', 'unittest', 'test.shortScoreTests']
+    args = ['run', '--rm', '--name', dockerContainerName, dockerTagName, 'python', '-m', 'unittest', 'test.shortScoreTests']
 }
 
 task dockerStop(type: Exec) {
     group 'Docker'
     description 'Stop the jenkins docker container'
     commandLine 'docker'
-    args = ['rm', '-f', '-v', 'shortscore:1']
+    args = ['rm', '--force', '--volumes', dockerContainerName]
 }
 
 task dockerStatus(type: Exec) {
     group 'Docker'
     description 'Display the process status of jenkins docker container'
     commandLine 'docker'
-    args = ['ps', '-a', '-f', "name=shortscore:1"]
+    args = ['ps', '--all', '--filter', "name=$dockerContainerName"]
 }
 
 task dockerBuild(type: Exec) {
     group 'Docker'
-    description "Build the docker image, tag as 1."
+    description "Build the docker image."
     commandLine 'docker'
-    args = ['build', '-t', "shortscore:1", "."]
+    args = ['build', '--tag', dockerTagName, "."]
 }
 
 task dockerPush(type: Exec) {
     group 'Docker'
     description 'Push the docker image with the current tag'
     commandLine 'docker'
-    args = ['push', "$dockerImageName:$dockerTag"]
+    args = ['push', dockerTagName]
 }
