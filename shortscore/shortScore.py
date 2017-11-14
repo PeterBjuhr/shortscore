@@ -159,6 +159,20 @@ class ShortScore():
             w.write("\n@@@\n")
             w.write(ssc)
 
+    def getShortScoreFromFile(self, shortScoreFile):
+        try:
+            with open(shortScoreFile) as r:
+                text = r.read()
+        except IOError:
+            return False
+        # Read part definition
+        try:
+            partDef, ssc = tuple(text.split("@@@"))
+        except ValueError:
+            partDef = ''
+            ssc = text
+        return partDef, ssc
+
     def readPartDef(self, partDef, flipped=True):
         partDefDict = {}
         for l in partDef.split("\n"):
@@ -175,14 +189,8 @@ class ShortScore():
         if not self.glob:
             self.glob = "Glob"
         self.score[self.glob] = []
-        with open(shortScoreFile) as r:
-            text = r.read()
-        # Read part definition
-        try:
-            partDef, ssc = tuple(text.split("@@@"))
-        except ValueError:
-            partDef = ''
-            ssc = text
+        # Get scortcore
+        partDef, ssc = self.getShortScoreFromFile(shortScoreFile)
         partDefDict = self.readPartDef(partDef, False)
         # Read shortscore
         bars = ssc.split("|")
@@ -271,12 +279,7 @@ class ShortScore():
 
     def writeToShortScoreFile(self, shortScoreFile):
         # Read part definition
-        with open(shortScoreFile) as r:
-            text = r.read()
-        try:
-            partDef, ssc = tuple(text.split("@@@"))
-        except ValueError:
-            partDef = ''
+        partDef, ssc = self.getShortScoreFromFile(shortScoreFile)
         partDefDict = self.readPartDef(partDef)
         # Write to file
         with open(shortScoreFile, "w") as w:
