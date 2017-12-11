@@ -40,7 +40,7 @@ class ShortScore():
         for g in glob.split("\n"):
             m = re.search(r"\\time\s*([\w\W]+)\b", g)
             if m:
-                globDict['m'] = m.group(1)
+                globDict['m'] = timesign = m.group(1)
             t = re.search(r"\\tempo\s*([\w\W]+)\b", g)
             if t:
                 globDict['t'] = t.group(1)
@@ -51,16 +51,31 @@ class ShortScore():
                     globDict['rm'] = 'd'
                 else:
                     globDict['rm'] = mark
-            restmatch = re.findall(r"s([\d\*\.]+?)(\d+)\b", g)
-            if restmatch:
-                globDict['u'] = restmatch[0][0][:-1]
-                self.score[self.glob].append(globDict)
-                globDict = {}
-                rests = [int(r) for u, r in restmatch]
-                rests[0] -= 1
-                for r in rests:
-                    if r:
-                        self.score[self.glob] += [''] * r
+            if 's' in g:
+                for spacerRest in g.split():
+                    spacerRest = spacerRest.replace('s', '')
+                    sprList = spacerRest.split('*')
+                    chains = len(sprList)
+                    if chains == 1:
+                        unit = sprList[0]
+                        mult = 1
+                    else:
+                        unit, mult = tuple(sprList[:2])
+                        from fractions import Fraction
+                        if '.' not in unit:
+                            if Fraction(timesign) == Fraction(int(mult), int(unit)):
+                                unit = unit + '*' + mult
+                                mult = 1
+                        mult = int(mult)
+                        if chains > 2:
+                            for m in sprList[2:]:
+                                mult *= m
+                    if globDict:
+                        globDict['u'] = unit
+                        self.score[self.glob].append(globDict)
+                        globDict = {}
+                        mult -= 1
+                    self.score[self.glob] += [''] * mult
 
     def getBracketPositions(self, text):
         stack = []
