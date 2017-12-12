@@ -382,23 +382,24 @@ class ShortScore():
         self.replaceLyPartContent(self.glob, glob)
 
         for part in self.parts:
-            multibar = False
+            multibar = 0
             content = []
             for barnr, bar in enumerate(self.score[part]):
                 if 'u' in self.score[self.glob][barnr]:
+                    if unit and unit != self.score[self.glob][barnr]['u']:
+                        if multibar:
+                            content.append(restStr + str(multibar))
+                            multibar = 0
                     unit = self.score[self.glob][barnr]['u']
-                restStr = 'R' + unit + '*'
+                    restStr = 'R' + unit + '*'
                 if bar:
                     if multibar:
                         content.append(restStr + str(multibar))
-                        multibar = False
+                        multibar = 0
                     # Some music
                     content.append(bar + " |")
                 else:
-                    if multibar:
-                        multibar += 1
-                    else:
-                        multibar = 1
+                    multibar += 1
             if multibar:
                 content.append(restStr + str(multibar))
             self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
