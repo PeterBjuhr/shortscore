@@ -69,7 +69,7 @@ class ShortScore():
                         mult = int(mult)
                         if chains > 2:
                             for m in sprList[2:]:
-                                mult *= m
+                                mult *= int(m)
                     if globDict:
                         globDict['u'] = unit
                         self.score[self.glob].append(globDict)
