@@ -106,7 +106,7 @@ class ShortScore():
     def replaceLyPartContent(self, partname, newContent):
         with open(self.lyfile) as r:
             text = r.read()
-        pos = text.find(partname)
+        pos = text.find(partname + ' =')
         if pos:
             slice = text[pos:]
             start, end = self.getBracketPositions(slice)
