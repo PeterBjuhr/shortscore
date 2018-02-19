@@ -97,7 +97,7 @@ class ShortScore():
     def getPartContentFromLy(self, partname):
         with open(self.lyfile) as r:
             text = r.read()
-        pos = text.find(partname)
+        pos = text.find(partname + ' =')
         if pos:
             text = text[pos:]
             start, end = self.getBracketPositions(text)
