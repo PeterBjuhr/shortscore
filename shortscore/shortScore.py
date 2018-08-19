@@ -124,12 +124,27 @@ class ShortScore():
         text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
         return text
 
+    def handleRests(self, partname, bar):
+        words = bar.split()
+        for i, w in enumerate(words):
+            if 'R' in w or 's' in w:
+                w = w.replace('R', '')
+                w = w.replace('s', '')
+                n = w.split('*')
+                compare = 2 if n[0] > self.unit else 1
+                print compare
+                if len(n) > compare:
+                    r = int(n[-1])
+                else:
+                    r = 1
+                print r
+                self.score[partname] += [''] * r
+                del words[i]
+        return " ".join(words)
+
     def parseLyPart(self, partname, part):
         for b in part.split("|"):
-            rests = [int(r) for r in re.findall(r"\b(?:R|s)[\d\*\.]+?(\d+)\b", b)]
-            for r in rests:
-                self.score[partname] += [''] * r
-            b = re.sub(r"\b(?:R|s)[\d\*\.]+", '', b)
+            b = self.handleRests(partname, b)
             b = self.ly2shortScore(b)
             if b.strip():
                 self.score[partname].append(b.strip())
