@@ -132,12 +132,10 @@ class ShortScore():
                 w = w.replace('s', '')
                 n = w.split('*')
                 compare = 2 if n[0] > self.unit else 1
-                print compare
                 if len(n) > compare:
                     r = int(n[-1])
                 else:
                     r = 1
-                print r
                 self.score[partname] += [''] * r
                 del words[i]
         return " ".join(words)
