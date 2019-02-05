@@ -143,9 +143,9 @@ class ShortScore():
     def parseLyPart(self, partname, part):
         for b in part.split("|"):
             b = self.handleMultibarRests(partname, b)
-            b = self.ly2shortScore(b)
-            if b.strip():
-                self.score[partname].append(b.strip())
+            b = self.ly2shortScore(b).strip()
+            if b:
+                self.score[partname].append(b)
 
     def readLyVars(self):
         self.initScore()
