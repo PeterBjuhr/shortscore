@@ -72,7 +72,8 @@ class ShortScoreTestCase(unittest.TestCase):
             self.assertEquals(newContent in text, True)
 
     def testLy2shortScore(self):
-        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 1/2 3 {abc123}'), '[abc123]:1\\2:3')
+        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 4 {a8 b c a b c}'), '[a8 b c a b c]:3\\2:4')
+        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 {a8 b c}'), '[a8 b c]:3\\2')
 
     def testParseLyPart(self):
         part = '\n  a2.\\pp |\n  bes2.~'
@@ -114,7 +115,7 @@ class ShortScoreTestCase(unittest.TestCase):
         music = 'a8 <a b c>4 b8'
         nrOfParts = 3
         result = self.shortScore.explodeChords(music, nrOfParts)
-        expected = ['a8 c4 b8', 'a8 b4 b8', 'a8 a4 b8']
+        expected = ['a8 a4 b8', 'a8 b4 b8', 'a8 c4 b8']
         self.assertEquals(result, expected)
 
     def testParseGlobalData(self):
