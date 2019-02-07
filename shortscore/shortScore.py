@@ -9,6 +9,7 @@ class ShortScore():
     """
     def __init__(self, lyfile):
         self.unit = '1'
+        self.lyscheme = []
         self.lyfile = lyfile
         glob, parts = self.getPartNamesFromLy()
         self.parts = parts
@@ -37,6 +38,7 @@ class ShortScore():
 
     def parseLyGlob(self, glob):
         globDict = {}
+        schemeDict = self.lyscheme[-1] if self.lyscheme else {}
         for g in glob.split("\n"):
             m = re.search(r"\\time\s*([\w\W]+)\b", g)
             if m:
@@ -70,12 +72,15 @@ class ShortScore():
                         if chains > 2:
                             for m in sprList[2:]:
                                 mult *= int(m)
+                    schemeMult = mult
                     if globDict:
                         globDict['u'] = unit
                         self.score[self.glob].append(globDict)
+                        schemeDict.update(globDict)
                         globDict = {}
                         mult -= 1
                     self.score[self.glob] += [''] * mult
+                    self.lyscheme += [schemeDict] * schemeMult
 
     def getBracketPositions(self, text):
         stack = []
@@ -126,16 +131,41 @@ class ShortScore():
         return text
 
     def handleMultibarRests(self, partname, bar):
+        def multiplyList(multlist):
+            product = 1
+            for i in multlist:
+                product *= int(i)
+            return product
+
         words = bar.split()
         for i, w in enumerate(words):
             if 'R' in w:
+                barnr = len(self.score[partname])
+                globDict = self.lyscheme[barnr]
+                unit = globDict['u']
+                timesign = globDict['m']
                 w = w.replace('R', '')
-                n = w.split('*')
-                compare = 2 if n[0] > self.unit else 1
-                if len(n) > compare:
-                    r = int(n[-1])
+                if unit in w:
+                    w = w.replace(unit, '').strip('*')
+                    n = w.split('*')
+                    r = multiplyList(n)
                 else:
-                    r = 1
+                    n = w.split('*')
+                    from fractions import Fraction
+                    timeFraction = Fraction(timesign)
+                    restNum = multiplyList(n[1:])
+                    restDen = n[0]
+                    if '.' in restDen:
+                        undotted = restDen.replace('.', '')
+                        restDen = int(undotted) * 2
+                        restNum *= 3
+                    else:
+                        restDen = int(restDen)
+                    restFraction = Fraction(restNum, restDen)
+                    quotient = restFraction / timeFraction
+                    if quotient.denominator > 1:
+                        print("Something went run when calculating multibar rests!")
+                    r = quotient.numerator
                 self.score[partname] += [''] * r
                 del words[i]
         return " ".join(words)

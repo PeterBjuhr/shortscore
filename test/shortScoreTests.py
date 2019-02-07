@@ -84,8 +84,23 @@ class ShortScoreTestCase(unittest.TestCase):
     def testReadLyVars(self):
         self.shortScore.readLyVars()
         self.assertEquals(self.shortScore.glob, 'tstGlob')
-        expectedTstGlobScore = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
-        self.assertEquals(self.shortScore.score['tstGlob'], expectedTstGlobScore)
+        expectedTstGlobPart = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
+        self.assertEquals(self.shortScore.score['tstGlob'], expectedTstGlobPart)
+        expectedTstClarinetPart = ['a2.:pp', 'bes2.~', '', '', '', '', '', '', '', '', '']
+        self.assertEquals(self.shortScore.score['tstClarinet'], expectedTstClarinetPart)
+
+    def testHandleMultibarRests(self):
+        self.shortScore.initScore()
+        if self.shortScore.glob:
+            self.shortScore.score[self.shortScore.glob] = []
+        glob = """\\time 6/8
+        s2.*4"""
+        self.shortScore.parseLyGlob(glob)
+        self.shortScore.handleMultibarRests('tstSoloViolin', 'R2.*2')
+        self.assertEquals(self.shortScore.score['tstSoloViolin'], ['', ''])
+        self.shortScore.score['tstSoloViolin'] = []
+        self.shortScore.handleMultibarRests('tstSoloViolin', 'R4.*4')
+        self.assertEquals(self.shortScore.score['tstSoloViolin'], ['', ''])
 
     def testSetBarnrInGlob(self):
         self.shortScore.glob = 'tstGlob'
