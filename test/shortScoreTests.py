@@ -43,9 +43,9 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(parts, expectedParts)
 
     def testParseLyGlob(self):
-        self.shortScore.parseLyGlob(self.shortScore.glob)
-        expected = {'tstSoloViolin': [], 'tstMarLower': [], 'tstGlob': [], 'tstClarinet': [], 'tstOboe': [], 'tstPerc': [], 'tstViola': [], 'tstMarUpper': [], 'tstHarpRight': [], 'tstFlute': [], 'tstHarpLeft': [], 'tstCello': [], 'tstViolinI': [], 'tstViolinII': [], 'tstContrabass': []}
-        self.assertEquals(self.shortScore.score, expected)
+        self.shortScore.parseLyGlob(self.shortScore.getPartContentFromLy(self.shortScore.glob))
+        expected = [{'u': '2.', 'm': '3/4'}, '', '', '', '', {'rm': 'd', 'u': '2.'}, '', '', '', '', '']
+        self.assertEquals(self.shortScore.score[self.shortScore.glob], expected)
 
     def testGetBracketPositions(self):
         self.assertEquals(self.shortScore.getBracketPositions(''), None)
