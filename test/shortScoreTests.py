@@ -43,9 +43,9 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(parts, expectedParts)
 
     def testParseLyGlob(self):
-        self.shortScore.parseLyGlob(self.shortScore.glob)
-        expected = {'tstSoloViolin': [], 'tstMarLower': [], 'tstGlob': [], 'tstClarinet': [], 'tstOboe': [], 'tstPerc': [], 'tstViola': [], 'tstMarUpper': [], 'tstHarpRight': [], 'tstFlute': [], 'tstHarpLeft': [], 'tstCello': [], 'tstViolinI': [], 'tstViolinII': [], 'tstContrabass': []}
-        self.assertEquals(self.shortScore.score, expected)
+        self.shortScore.parseLyGlob(self.shortScore.getPartContentFromLy(self.shortScore.glob))
+        expected = [{'u': '2.', 'm': '3/4'}, '', '', '', '', {'rm': 'd', 'u': '2.'}, '', '', '', '', '']
+        self.assertEquals(self.shortScore.score[self.shortScore.glob], expected)
 
     def testGetBracketPositions(self):
         self.assertEquals(self.shortScore.getBracketPositions(''), None)
@@ -72,7 +72,8 @@ class ShortScoreTestCase(unittest.TestCase):
             self.assertEquals(newContent in text, True)
 
     def testLy2shortScore(self):
-        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 1/2 3 {abc123}'), '[abc123]:1\\2:3')
+        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 4 {a8 b c a b c}'), '[a8 b c a b c]:3\\2:4')
+        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 {a8 b c}'), '[a8 b c]:3\\2')
 
     def testParseLyPart(self):
         part = '\n  a2.\\pp |\n  bes2.~'
@@ -83,8 +84,23 @@ class ShortScoreTestCase(unittest.TestCase):
     def testReadLyVars(self):
         self.shortScore.readLyVars()
         self.assertEquals(self.shortScore.glob, 'tstGlob')
-        expectedTstGlobScore = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
-        self.assertEquals(self.shortScore.score['tstGlob'], expectedTstGlobScore)
+        expectedTstGlobPart = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
+        self.assertEquals(self.shortScore.score['tstGlob'], expectedTstGlobPart)
+        expectedTstClarinetPart = ['a2.:pp', 'bes2.~', '', '', '', '', '', '', '', '', '']
+        self.assertEquals(self.shortScore.score['tstClarinet'], expectedTstClarinetPart)
+
+    def testHandleMultibarRests(self):
+        self.shortScore.initScore()
+        if self.shortScore.glob:
+            self.shortScore.score[self.shortScore.glob] = []
+        glob = """\\time 6/8
+        s2.*4"""
+        self.shortScore.parseLyGlob(glob)
+        self.shortScore.handleMultibarRests('tstSoloViolin', 'R2.*2')
+        self.assertEquals(self.shortScore.score['tstSoloViolin'], ['', ''])
+        self.shortScore.score['tstSoloViolin'] = []
+        self.shortScore.handleMultibarRests('tstSoloViolin', 'R4.*4')
+        self.assertEquals(self.shortScore.score['tstSoloViolin'], ['', ''])
 
     def testSetBarnrInGlob(self):
         self.shortScore.glob = 'tstGlob'
@@ -114,7 +130,7 @@ class ShortScoreTestCase(unittest.TestCase):
         music = 'a8 <a b c>4 b8'
         nrOfParts = 3
         result = self.shortScore.explodeChords(music, nrOfParts)
-        expected = ['a8 c4 b8', 'a8 b4 b8', 'a8 a4 b8']
+        expected = ['a8 a4 b8', 'a8 b4 b8', 'a8 c4 b8']
         self.assertEquals(result, expected)
 
     def testParseGlobalData(self):
