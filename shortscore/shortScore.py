@@ -134,7 +134,10 @@ class ShortScore():
         def multiplyList(multlist):
             product = 1
             for i in multlist:
-                product *= int(i)
+                if i:
+                    product *= int(i)
+                else:
+                    product *= 1
             return product
 
         words = bar.split()
@@ -164,7 +167,7 @@ class ShortScore():
                     restFraction = Fraction(restNum, restDen)
                     quotient = restFraction / timeFraction
                     if quotient.denominator > 1:
-                        print("Something went run when calculating multibar rests!")
+                        print("Something went wrong when calculating multibar rests!")
                     r = quotient.numerator
                 self.score[partname] += [''] * r
                 del words[i]
@@ -273,7 +276,7 @@ class ShortScore():
                 except IndexError:
                     print(data)
                 partList = [p.strip() for p in parts.split(",")]
-                if parts.strip().startswith('^'):
+                if parts.strip().startswith('<'):
                     partMusic = self.explodeChords(music, len(partList))
                     partList[0] = partList[0][1:]
                 else:
@@ -434,15 +437,19 @@ class ShortScore():
                             content.append(restStr + str(multibar))
                             multibar = 0
                     unit = self.score[self.glob][barnr]['u']
-                    restStr = 'R' + unit + '*'
+                    restStr = 'R' + unit
                 if bar:
                     if multibar:
-                        content.append(restStr + str(multibar))
+                        if multibar > 1:
+                            restStr =+ '*' + str(multibar)
+                        content.append(restStr)
                         multibar = 0
                     # Some music
                     content.append(bar + " |")
                 else:
                     multibar += 1
             if multibar:
-                content.append(restStr + str(multibar))
+                if multibar > 1:
+                    restStr =+ '*' + str(multibar)
+                content.append(restStr)
             self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
