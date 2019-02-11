@@ -276,7 +276,7 @@ class ShortScore():
                 except IndexError:
                     print(data)
                 partList = [p.strip() for p in parts.split(",")]
-                if parts.strip().startswith('^'):
+                if parts.strip().startswith('<'):
                     partMusic = self.explodeChords(music, len(partList))
                     partList[0] = partList[0][1:]
                 else:
@@ -437,15 +437,19 @@ class ShortScore():
                             content.append(restStr + str(multibar))
                             multibar = 0
                     unit = self.score[self.glob][barnr]['u']
-                    restStr = 'R' + unit + '*'
+                    restStr = 'R' + unit
                 if bar:
                     if multibar:
-                        content.append(restStr + str(multibar))
+                        if multibar > 1:
+                            restStr =+ '*' + str(multibar)
+                        content.append(restStr)
                         multibar = 0
                     # Some music
                     content.append(bar + " |")
                 else:
                     multibar += 1
             if multibar:
-                content.append(restStr + str(multibar))
+                if multibar > 1:
+                    restStr =+ '*' + str(multibar)
+                content.append(restStr)
             self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
