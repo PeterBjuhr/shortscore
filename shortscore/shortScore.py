@@ -134,7 +134,10 @@ class ShortScore():
         def multiplyList(multlist):
             product = 1
             for i in multlist:
-                product *= int(i)
+                if i:
+                    product *= int(i)
+                else:
+                    product *= 1
             return product
 
         words = bar.split()
@@ -164,7 +167,7 @@ class ShortScore():
                     restFraction = Fraction(restNum, restDen)
                     quotient = restFraction / timeFraction
                     if quotient.denominator > 1:
-                        print("Something went run when calculating multibar rests!")
+                        print("Something went wrong when calculating multibar rests!")
                     r = quotient.numerator
                 self.score[partname] += [''] * r
                 del words[i]
