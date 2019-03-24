@@ -442,6 +442,8 @@ class ShortScore():
                     if multibar:
                         if multibar > 1:
                             multirest = restStr + '*' + str(multibar)
+                        else:
+                            multirest = restStr
                         content.append(multirest)
                         multibar = 0
                     # Some music
@@ -451,6 +453,8 @@ class ShortScore():
             if multibar:
                 if multibar > 1:
                     multirest = restStr + '*' + str(multibar)
+                else:
+                    multirest = restStr
                 content.append(multirest)
                 multibar = 0
             self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
