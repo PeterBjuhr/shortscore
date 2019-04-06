@@ -189,11 +189,15 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(result, expected)
 
     def testWriteToLyFile(self):
+        with open(self.copyOfLilyPondExampleFilename) as r:
+            refcontent = r.readlines()
+        expected = [l.strip() for l in refcontent]
         self.shortScore.readShortScore(self.copyOfShortScoreExampleFilename)
         self.shortScore.writeToLyFile()
         with open(self.copyOfLilyPondExampleFilename) as r:
-            text = r.read()
-            self.assertEquals('tstGlob' in text, True)
+            gencontent = r.readlines()
+        result = [l.strip() for l in gencontent]
+        self.assertEquals(result, expected)
 
 def suite():
     suite1 = unittest.makeSuite(ShortScoreTestCase)

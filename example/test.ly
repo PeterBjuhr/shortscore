@@ -96,7 +96,7 @@ tstCello = \relative c {
   bes4\mf( a2) |
   R2.*3
   bes2 a4 |
-  R2.*1
+  R2.
   d2. |
 }
 
@@ -110,7 +110,7 @@ tstContrabass = \relative c {
   bes2 g4 |
   \instrumentSwitch "pizzstring" a8 c d a g f |
   \instrumentSwitch "arcostr" bes2 a4 |
-  R2.*1
+  R2.
   d2. |
 }
 
