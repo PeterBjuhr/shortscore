@@ -413,6 +413,13 @@ class ShortScore():
         return text
 
     def writeToLyFile(self):
+        def getMultirest(restStr, multibar):
+            if multibar > 1:
+                multirest = restStr + '*' + str(multibar)
+            else:
+                multirest = restStr
+            return multirest
+
         unit = '1'
         m = 0
         glob = ''
@@ -434,27 +441,19 @@ class ShortScore():
                 if 'u' in self.score[self.glob][barnr]:
                     if unit and unit != self.score[self.glob][barnr]['u']:
                         if multibar:
-                            content.append(restStr + str(multibar))
+                            content.append(getMultirest(restStr, multibar))
                             multibar = 0
                     unit = self.score[self.glob][barnr]['u']
                     restStr = 'R' + unit
                 if bar:
                     if multibar:
-                        if multibar > 1:
-                            multirest = restStr + '*' + str(multibar)
-                        else:
-                            multirest = restStr
-                        content.append(multirest)
+                        content.append(getMultirest(restStr, multibar))
                         multibar = 0
                     # Some music
                     content.append(bar + " |")
                 else:
                     multibar += 1
             if multibar:
-                if multibar > 1:
-                    multirest = restStr + '*' + str(multibar)
-                else:
-                    multirest = restStr
-                content.append(multirest)
+                content.append(getMultirest(restStr, multibar))
                 multibar = 0
             self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
