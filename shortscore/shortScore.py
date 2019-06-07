@@ -127,6 +127,7 @@ class ShortScore():
         text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
+        text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
         text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
         return text
 
@@ -407,8 +408,7 @@ class ShortScore():
         text = re.sub(r'\b([a-gis\d]+):g', r"\\acciaccatura \g<1>", text)
         text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
         text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
-        text = re.sub(r'\b([\w\.\',]+)\s*:pizz\b', r'\\instrumentSwitch "pizzstring" \g<1>', text)
-        text = re.sub(r'\b([\w]+):(arco\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
+        text = re.sub(r'\b([\w\.\',]+)\s*:chi:(\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
         text = re.sub(r' +', ' ', text)
         return text
 
