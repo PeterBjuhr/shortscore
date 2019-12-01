@@ -3,3 +3,5 @@
 /gradle
 /build
 /dist
+/shortscore/musicxml/testsuite
+/shortscore/musicxml/mxmlImporterTestSuite.py
