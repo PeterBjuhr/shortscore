@@ -1,6 +1,6 @@
-from shortScoreLexer import ShortScoreLexer
-from shortScoreParser import ShortScoreParser
-from backTranslator import BackTranslator
+from shortscore.shortScoreLexer import ShortScoreLexer
+from shortscore.shortScoreParser import ShortScoreParser
+from shortscore.backTranslator import BackTranslator
 from lilypond.lilypondExporter import LilypondExporter
 from lilypond.lilypondImporter import LilypondImporter
 from musicxml.musicxmlExporter import MusicXMLExporter
@@ -143,8 +143,8 @@ class ShortScore():
 
     def write_to_shortscore_file(self, shortscore_file):
         # Read part definition
-        partdef, ssc = self.get_short_score_from_file(short_score_file)
-        partdef_dict = self.read_part_def(partdef)
+        partdef, ssc = self.get_shortscore_from_file(shortscore_file)
+        partdef_dict = self.read_partdef(partdef)
         # Write to file
         with open(shortscore_file, "w") as w:
             w.write(partdef)

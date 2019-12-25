@@ -2,7 +2,7 @@ import os
 
 import xml.etree.ElementTree as ET
 
-from parseTreeClasses import *
+from shortscore.parseTreeClasses import *
 
 class MusicXMLImporter():
 

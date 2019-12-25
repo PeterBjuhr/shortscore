@@ -1,8 +1,8 @@
 import xml.etree.ElementTree as ET
 
-from shortScoreLexer import ShortScoreLexer
-from shortScoreParser import ShortScoreParser
-from parseTreeClasses import Duration
+from shortscore.shortScoreLexer import ShortScoreLexer
+from shortscore.shortScoreParser import ShortScoreParser
+from shortscore.parseTreeClasses import Duration
 
 class MusicXMLExporter():
 
