@@ -17,9 +17,9 @@ class MusicXMLExporter():
             'Duration': ['type', 'dot']
         }
 
-    def __init__(self):
-        self.ssc_lexer = ShortScoreLexer()
-        self.ssc_parser = ShortScoreParser()
+    def __init__(self, language='default'):
+        self.ssc_lexer = ShortScoreLexer(language)
+        self.ssc_parser = ShortScoreParser(language)
         self.root = ET.Element("score-partwise", version="3.0")
 
     def do_replaces(self, input_str):

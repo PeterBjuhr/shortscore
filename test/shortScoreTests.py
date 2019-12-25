@@ -3,7 +3,13 @@ import shutil
 import sys
 import unittest
 
-from shortscore.shortScore import ShortScore
+try:
+    from shortscore.shortScore import ShortScore
+except ImportError:
+    import sys
+    sys.path.append('../shortscore')
+    from shortScore import ShortScore
+
 
 class ShortScoreTestCase(unittest.TestCase):
     def setUp(self):
@@ -42,11 +48,6 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(glob, 'tstGlob')
         self.assertEquals(parts, expectedParts)
 
-    def testParseLyGlob(self):
-        self.shortScore.parseLyGlob(self.shortScore.getPartContentFromLy(self.shortScore.glob))
-        expected = [{'u': '2.', 'm': '3/4'}, '', '', '', '', {'rm': 'd', 'u': '2.'}, '', '', '', '', '']
-        self.assertEquals(self.shortScore.score[self.shortScore.glob], expected)
-
     def testGetBracketPositions(self):
         self.assertEquals(self.shortScore.getBracketPositions(''), None)
         self.assertEquals(self.shortScore.getBracketPositions('{'), None)
@@ -56,38 +57,6 @@ class ShortScoreTestCase(unittest.TestCase):
         self.assertEquals(self.shortScore.getBracketPositions('{{}}'), (0, 3))
         self.assertEquals(self.shortScore.getBracketPositions(' {{}}'), (1, 4))
         self.assertEquals(self.shortScore.getBracketPositions(' a { a } a'), (3, 7))
-
-    def testGetPartContentFromLy(self):
-        expectedFlutePart = '\n  a2.\\pp |\n  bes2.~ |\n  bes2. |\n  bes2. |\n  R2.*7'
-        flutePart = self.shortScore.getPartContentFromLy('tstFlute')
-        self.assertEquals(flutePart, expectedFlutePart)
-        self.assertEquals(self.shortScore.getPartContentFromLy('nonExisting'), '')
-
-    def testReplaceLyPartContent(self):
-        partName = 'tstFlute'
-        newContent = 'newContent'
-        self.shortScore.replaceLyPartContent(partName, newContent)
-        with open(self.copyOfLilyPondExampleFilename) as r:
-            text = r.read()
-            self.assertEquals(newContent in text, True)
-
-    def testLy2shortScore(self):
-        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 4 {a8 b c a b c}'), '[a8 b c a b c]:3\\2:4')
-        self.assertEquals(self.shortScore.ly2shortScore('\\tuplet 3/2 {a8 b c}'), '[a8 b c]:3\\2')
-
-    def testParseLyPart(self):
-        part = '\n  a2.\\pp |\n  bes2.~'
-        partName = 'tstFlute'
-        self.shortScore.parseLyPart(partName, part)
-        self.assertEquals(self.shortScore.score[partName], ['a2.:pp', 'bes2.~'])
-
-    def testReadLyVars(self):
-        self.shortScore.readLyVars()
-        self.assertEquals(self.shortScore.glob, 'tstGlob')
-        expectedTstGlobPart = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
-        self.assertEquals(self.shortScore.score['tstGlob'], expectedTstGlobPart)
-        expectedTstClarinetPart = ['a2.:pp', 'bes2.~', '', '', '', '', '', '', '', '', '']
-        self.assertEquals(self.shortScore.score['tstClarinet'], expectedTstClarinetPart)
 
     def testHandleMultibarRests(self):
         self.shortScore.initScore()
@@ -125,13 +94,6 @@ class ShortScoreTestCase(unittest.TestCase):
     def testReadShortScore(self):
         self.shortScore.readShortScore(self.copyOfShortScoreExampleFilename)
         self.assertEquals(self.shortScore.score['tstSoloViolin'][5], 'bes8:g:mf:gl:a2 bes8 g')
-
-    def testExplodeChords(self):
-        music = 'a8 <a b c>4 b8'
-        nrOfParts = 3
-        result = self.shortScore.explodeChords(music, nrOfParts)
-        expected = ['a8 a4 b8', 'a8 b4 b8', 'a8 c4 b8']
-        self.assertEquals(result, expected)
 
     def testParseGlobalData(self):
         glob = 'a:1,b:2'
@@ -188,16 +150,6 @@ class ShortScoreTestCase(unittest.TestCase):
         result = self.shortScore.shortScoreMusicToLy('[abc]:1\\2:3')
         self.assertEquals(result, expected)
 
-    def testWriteToLyFile(self):
-        with open(self.copyOfLilyPondExampleFilename) as r:
-            refcontent = r.readlines()
-        expected = [l.strip() for l in refcontent]
-        self.shortScore.readShortScore(self.copyOfShortScoreExampleFilename)
-        self.shortScore.writeToLyFile()
-        with open(self.copyOfLilyPondExampleFilename) as r:
-            gencontent = r.readlines()
-        result = [l.strip() for l in gencontent]
-        self.assertEquals(result, expected)
 
 def suite():
     suite1 = unittest.makeSuite(ShortScoreTestCase)

@@ -1,297 +1,61 @@
-#!/usr/bin/python
-
-import re
+from shortScoreLexer import ShortScoreLexer
+from shortScoreParser import ShortScoreParser
+from backTranslator import BackTranslator
+from lilypond.lilypondExporter import LilypondExporter
+from lilypond.lilypondImporter import LilypondImporter
+from musicxml.musicxmlExporter import MusicXMLExporter
+from musicxml.musicxmlImporter import MusicXMLImporter
 
 class ShortScore():
     """
-    Export from shortscore to lilypond.
-    Simple import from ly file.
+    Representing a shortscore
     """
-    def __init__(self, lyfile):
+    def __init__(self, language='default'):
+        self.lexer = ShortScoreLexer(language)
+        self.parser = ShortScoreParser(language)
+        self.mxml_exporter = MusicXMLExporter(language)
+        self.backtranslator = BackTranslator()
         self.unit = '1'
-        self.lyscheme = []
-        self.lyfile = lyfile
-        glob, parts = self.getPartNamesFromLy()
-        self.parts = parts
-        self.initScore()
-        if glob:
-            self.score[glob] = []
-            self.glob = glob
+        self.parts = []
+        self.partdef = {}
+        glob = 'glob'
+        self.glob = glob
+        self.init_score()
 
-    def initScore(self):
+    def init_score(self):
         self.score = {}
-        for p in self.parts:
-            self.score[p] = []
+        self.score[self.glob] = []
+        if self.parts:
+            for p in self.parts:
+                self.score[p] = []
 
-    def getPartNamesFromLy(self):
-        with open(self.lyfile) as r:
-            text = r.read()
-        parts = []
-        parts = re.findall(r"(\w+)\s*=\s*(?:\\\w+\s*\w+[',]*\s*)?{", text)
-        globMatch = re.search(r"\\new Devnull\s*\{?\s*\\(\w+)", text)
-        if globMatch:
-            glob = globMatch.group(1)
-            parts.remove(glob)
-        else:
-            glob = ''
-        return glob, parts
-
-    def parseLyGlob(self, glob):
-        globDict = {}
-        schemeDict = self.lyscheme[-1] if self.lyscheme else {}
-        for g in glob.split("\n"):
-            m = re.search(r"\\time\s*([\w\W]+)\b", g)
-            if m:
-                globDict['m'] = timesign = m.group(1)
-            t = re.search(r"\\tempo\s*([\w\W]+)\b", g)
-            if t:
-                globDict['t'] = t.group(1)
-            rm = re.search(r"\\mark\s*([\w\W]+)\b", g)
-            if rm:
-                mark = rm.group(1)
-                if mark == r'\default':
-                    globDict['rm'] = 'd'
-                else:
-                    globDict['rm'] = mark
-            if 's' in g:
-                for spacerRest in g.split():
-                    spacerRest = spacerRest.replace('s', '')
-                    sprList = spacerRest.split('*')
-                    chains = len(sprList)
-                    if chains == 1:
-                        unit = sprList[0]
-                        mult = 1
-                    else:
-                        unit, mult = tuple(sprList[:2])
-                        from fractions import Fraction
-                        if '.' not in unit:
-                            if Fraction(timesign) == Fraction(int(mult), int(unit)):
-                                unit = unit + '*' + mult
-                                mult = 1
-                        mult = int(mult)
-                        if chains > 2:
-                            for m in sprList[2:]:
-                                mult *= int(m)
-                    schemeMult = mult
-                    if globDict:
-                        globDict['u'] = unit
-                        self.score[self.glob].append(globDict)
-                        schemeDict.update(globDict)
-                        globDict = {}
-                        mult -= 1
-                    self.score[self.glob] += [''] * mult
-                    self.lyscheme += [schemeDict] * schemeMult
-
-    def getBracketPositions(self, text):
-        stack = []
-        start = False
-        end = False
-        for i, t in enumerate(text):
-            if t == '{':
-                if start is not False:
-                    stack.append('')
-                else:
-                    start = i
-            if t == '}':
-                if stack:
-                    stack.pop()
-                else:
-                    end = i
-                    return start, end
-
-    def getPartContentFromLy(self, partname):
-        with open(self.lyfile) as r:
-            text = r.read()
-        pos = text.find(partname + ' =')
-        if pos:
-            text = text[pos:]
-            start, end = self.getBracketPositions(text)
-            return text[start + 1:end - 1]
-
-    def replaceLyPartContent(self, partname, newContent):
-        with open(self.lyfile) as r:
-            text = r.read()
-        pos = text.find(partname + ' =')
-        if pos:
-            slice = text[pos:]
-            start, end = self.getBracketPositions(slice)
-            slice = slice[:start + 1] + "\n" + newContent + "\n" + slice[end:]
-            text = text[:pos] + slice
-        with open(self.lyfile, "w") as w:
-            w.write(text)
-
-    def ly2shortScore(self, text):
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d+)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>\\\g<2>:\g<3>', text)
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'[\g<3>]:\g<1>\\\g<2>', text)
-        text = re.sub(r'(\]:\d+\\\d+):\s', r'\g<1> ', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
-        text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
-        text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
-        text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
-        return text
-
-    def handleMultibarRests(self, partname, bar):
-        def multiplyList(multlist):
-            product = 1
-            for i in multlist:
-                if i:
-                    product *= int(i)
-                else:
-                    product *= 1
-            return product
-
-        words = bar.split()
-        for i, w in enumerate(words):
-            if 'R' in w:
-                barnr = len(self.score[partname])
-                globDict = self.lyscheme[barnr]
-                unit = globDict['u']
-                timesign = globDict['m']
-                w = w.replace('R', '')
-                if unit in w:
-                    w = w.replace(unit, '').strip('*')
-                    n = w.split('*')
-                    r = multiplyList(n)
-                else:
-                    n = w.split('*')
-                    from fractions import Fraction
-                    timeFraction = Fraction(timesign)
-                    restNum = multiplyList(n[1:])
-                    restDen = n[0]
-                    if '.' in restDen:
-                        undotted = restDen.replace('.', '')
-                        restDen = int(undotted) * 2
-                        restNum *= 3
-                    else:
-                        restDen = int(restDen)
-                    restFraction = Fraction(restNum, restDen)
-                    quotient = restFraction / timeFraction
-                    if quotient.denominator > 1:
-                        print("Something went wrong when calculating multibar rests!")
-                    r = quotient.numerator
-                self.score[partname] += [''] * r
-                del words[i]
-        return " ".join(words)
-
-    def parseLyPart(self, partname, part):
-        for b in part.split("|"):
-            b = self.handleMultibarRests(partname, b)
-            b = self.ly2shortScore(b).strip()
-            if b:
-                self.score[partname].append(b)
-
-    def readLyVars(self):
-        self.initScore()
-        if self.glob:
-            self.score[self.glob] = []
-            self.parseLyGlob(self.getPartContentFromLy(self.glob))
-        else:
-            self.glob = "Glob"
-            self.score[self.glob] = []
-        max = 0
-        for part in self.parts:
-            self.parseLyPart(part, self.getPartContentFromLy(part))
-            if len(self.score[part]) > max:
-                max = len(self.score[part])
-        if len(self.score[self.glob]) < max:
-            r = max - len(self.score[self.glob])
-            self.score[self.glob] += [''] * r
-        self.setBarnrInGlob()
-
-    def setBarnrInGlob(self):
-        for barnr, globDict in enumerate(self.score[self.glob]):
-            if globDict:
-                globDict['barnr'] = barnr
-
-    def createPartDefFromParts(self, shortScoreFile):
-        with open(shortScoreFile) as r:
-            text = r.read()
-        # Read part definition
+    def get_shortscore_from_file(self, shortscore_file):
         try:
-            partDef, ssc = tuple(text.split("@@@"))
-        except ValueError:
-            ssc = text
-        partDefList = []
-        for p in self.parts:
-            partDefList.append(p + " =")
-        partDef = "\n".join(partDefList)
-        with open(shortScoreFile, "w") as w:
-            w.write(partDef)
-            w.write("\n@@@\n")
-            w.write(ssc)
-
-    def getShortScoreFromFile(self, shortScoreFile):
-        try:
-            with open(shortScoreFile) as r:
+            with open(shortscore_file) as r:
                 text = r.read()
         except IOError:
             return False
         # Read part definition
         try:
-            partDef, ssc = tuple(text.split("@@@"))
+            partdef, ssc = tuple(text.split("@@@"))
         except ValueError:
-            partDef = ''
+            partdef = ''
             ssc = text
-        return partDef, ssc
+        return partdef, ssc
 
-    def readPartDef(self, partDef, flipped=True):
-        partDefDict = {}
-        for l in partDef.split("\n"):
+    def read_partdef(self, partdef, flipped=True):
+        partdef_dict = {}
+        for l in partdef.split("\n"):
             if l.strip():
                 partname, shortname = tuple(l.split("="))
                 if flipped:
-                    partDefDict[partname.strip()] = shortname.strip()
+                    partdef_dict[partname.strip()] = shortname.strip()
                 else:
-                    partDefDict[shortname.strip()] = partname.strip()
-        return partDefDict
+                    partdef_dict[shortname.strip()] = partname.strip()
+        return partdef_dict
 
-    def readShortScore(self, shortScoreFile):
-        self.initScore()
-        if not self.glob:
-            self.glob = "Glob"
-        self.score[self.glob] = []
-        # Get scortcore
-        partDef, ssc = self.getShortScoreFromFile(shortScoreFile)
-        partDefDict = self.readPartDef(partDef, False)
-        # Read shortscore
-        bars = ssc.split("|")
-        for barnr, b in enumerate(bars):
-            if not b.strip():
-                continue
-            # Add empty bar to each part
-            for k in self.score:
-                self.score[k].append('')
-            if '@' in b:
-                glob, b = tuple(b.split("@"))
-                self.score[self.glob][-1] = self.parseGlobalData(glob, barnr)
-            parts = b.split("/")
-
-            for p in parts:
-                if not p.strip():
-                    continue
-                data = p.split("::")
-                try:
-                    parts = data[0].strip()
-                    music = data[1].strip()
-                except IndexError:
-                    print(data)
-                partList = [p.strip() for p in parts.split(",")]
-                if parts.strip().startswith('<'):
-                    partMusic = self.explodeChords(music, len(partList))
-                    partList[0] = partList[0][1:]
-                else:
-                    partMusic = [music] * len(partList)
-                for pnr, partname in enumerate(partList):
-                    try:
-                        if partname in partDefDict:
-                            partname = partDefDict[partname]
-                        self.score[partname][-1] = partMusic[pnr]
-                    except KeyError:
-                        print("Error: " + partname + " not found in score!")
-
-    def explodeChords(self, music, nrOfParts):
-        parts = [''] * nrOfParts
+    def explode_chords(self, music, nrofparts):
+        parts = [''] * nrofparts
         start = 0
         for n, t in enumerate(music):
             if t == '<':
@@ -309,151 +73,129 @@ class ShortScore():
                 start = n + 1 + len(dura)
         return [p + music[start:] for p in parts]
 
-    def parseGlobalData(self, glob, barnr):
-        globDict = {}
-        globDict['barnr'] = barnr
+    def read_shortscore(self, shortscore_file):
+        # Get scortcore
+        partdef, ssc_str = self.get_shortscore_from_file(shortscore_file)
+        self.partdef = partdef_dict = self.read_partdef(partdef, False)
+        self.parts = partdef_dict.keys()
+        # Read shortscore
+        self.init_score()
+        bars = ssc_str.split("|")
+        for barnr, bar in enumerate(bars):
+            if not bar.strip():
+                continue
+            # Add empty bar to each part
+            for instrument in self.score:
+                self.score[instrument].append('')
+            if '@' in bar:
+                glob, bar = tuple(bar.split("@"))
+                self.score[self.glob][-1] = self.parse_global_data(glob, barnr)
+            parts = bar.split("/")
+
+            for p in parts:
+                if not p.strip():
+                    continue
+                try:
+                    parts, music = p.split("::")
+                except IndexError:
+                    print(p)
+                part_list = [p.strip() for p in parts.split(",")]
+                if parts.strip().startswith('<'):
+                    part_music = self.explode_chords(music, len(part_list))
+                    part_list[0] = part_list[0][1:]
+                else:
+                    part_music = [music] * len(part_list)
+                for pnr, partname in enumerate(part_list):
+                    try:
+                        self.score[partname][-1] = part_music[pnr].strip()
+                    except KeyError:
+                        print("Error: " + partname + " not found in score!")
+
+    def parse_global_data(self, glob, barnr):
+        glob_dict = {}
+        glob_dict['barnr'] = barnr
         for data in glob.split(","):
             data = data.strip()
             if data:
                 key, val = tuple(data.split(":"))
-                globDict[key] = val
-        if 'u' in globDict:
-            self.unit = globDict['u']
+                glob_dict[key] = val
+        if 'u' in glob_dict:
+            self.unit = glob_dict['u']
         else:
-            globDict['u'] = self.unit
-        return globDict
+            glob_dict['u'] = self.unit
+        return glob_dict
 
-    def globalDataToStr(self, globDict):
-        globList = []
-        for key in globDict:
+    def global_data_to_str(self, glob_dict):
+        glob_list = []
+        for key in glob_dict:
             if key != 'barnr': # Do not write out bar number
-                globList.append(":".join([key, globDict[key]]))
-        return ",".join(globList)
+                glob_list.append(":".join([key, glob_dict[key]]))
+        return ",".join(glob_list)
 
-    def getPartsFromPartDef(self, partDefDict):
+    def get_parts_from_partdef(self, partdef_dict):
         parts = []
         for p in self.parts:
-            if p in partDefDict:
-                parts.append(partDefDict[p])
+            if p in partdef_dict:
+                parts.append(partdef_dict[p])
             else:
                 parts.append(p)
         return parts
 
-    def writeToShortScoreFile(self, shortScoreFile):
+    def write_to_shortscore_file(self, shortscore_file):
         # Read part definition
-        partDef, ssc = self.getShortScoreFromFile(shortScoreFile)
-        partDefDict = self.readPartDef(partDef)
+        partdef, ssc = self.get_short_score_from_file(short_score_file)
+        partdef_dict = self.read_part_def(partdef)
         # Write to file
-        with open(shortScoreFile, "w") as w:
-            w.write(partDef)
+        with open(shortscore_file, "w") as w:
+            w.write(partdef)
             w.write("@@@\n")
             for barnr, bar in enumerate(self.score[self.glob]):
                 if bar:
-                    w.write(self.globalDataToStr(bar) + "@\n")
-                barDict = {}
+                    w.write(self.global_data_to_str(bar) + "@\n")
+                bardict = {}
                 for part in self.parts:
-                    if part in partDefDict:
-                        partname = partDefDict[part]
+                    if part in partdef_dict:
+                        partname = partdef_dict[part]
                     else:
                         partname = part
                     try:
                         if self.score[part][barnr]:
                             # Use music as key
                             key = self.score[part][barnr]
-                            if key in barDict:
-                                barDict[key].append(partname)
+                            if key in bardict:
+                                bardict[key].append(partname)
                             else:
-                                barDict[key] = [partname]
+                                bardict[key] = [partname]
                     except IndexError:
                         pass
                 # write bar
                 mo = []
-                for m in barDict:
-                    mo.append(",".join(barDict[m]) + ":: " + m)
+                for m in bardict:
+                    mo.append(",".join(bardict[m]) + ":: " + m)
                 w.write(" / ".join(mo))
                 w.write(" |\n")
 
-    def outputGlobalDataToLy(self, globDict):
-        output = []
-        if 'm' in globDict:
-            output.append(r"\time " + globDict['m'])
-        if 't' in globDict:
-            output.append(r"\tempo " + globDict['t'])
-        if 'k' in globDict:
-            output.append(r"\key " + globDict['k'])
-        if 'rm' in globDict:
-            if globDict['rm'] == 'd':
-                output.append(r"\mark \default")
-            else:
-                output.append(r"\mark " + globDict['rm'])
-        if 'd' in globDict:
-            self.applyGloballyToAllLyParts(":" + globDict['d'], globDict['barnr'])
-        # Handle rests
-        if 'u' in globDict:
-            output.append("s" + globDict['u'] + "*")
-        return "\n".join(output)
+    def export_to_ly(self, lyfile):
+        """Export to lilypond file"""
+	exporter = LilypondExporter(lyfile)
+	exporter.export_to_lyfile(self)
 
-    def applyGloballyToAllLyParts(self, text, barnr, after=False):
-        for p in self.parts:
-            if after:
-                self.score[p][barnr] += text
-            music = self.score[p][barnr].split()
-            if music:
-                music[0] += text
-                self.score[p][barnr] = " ".join(music)
+    def import_from_ly(self, lyfile):
+        """Import from lilypond file"""
+	self.init_score()
+	importer = LilypondImporter(lyfile)
+	importer.import_from_lyfile(self)
 
-    def shortScoreMusicToLy(self, text):
-        text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
-        text = re.sub(r'([a-gis\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
-        text = re.sub(r'\b([a-gis\d]+):g', r"\\acciaccatura \g<1>", text)
-        text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
-        text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
-        text = re.sub(r'\b([\w\.\',]+)\s*:chi:(\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
-        text = re.sub(r' +', ' ', text)
-        return text
-
-    def writeToLyFile(self):
-        def getMultirest(restStr, multibar):
-            if multibar > 1:
-                multirest = restStr + '*' + str(multibar)
-            else:
-                multirest = restStr
-            return multirest
-
-        unit = '1'
-        m = 0
-        glob = ''
-        for b in self.score[self.glob]:
-            if b:
-                if m:
-                    glob += str(m) + "\n"
-                glob += self.outputGlobalDataToLy(b)
-                m = 1
-            else:
-                m += 1
-        glob += str(m) + "\n"
-        self.replaceLyPartContent(self.glob, glob)
-
+    def export_to_mxml(self):
+        """Export to MusicXML file"""
         for part in self.parts:
-            multibar = 0
-            content = []
-            for barnr, bar in enumerate(self.score[part]):
-                if 'u' in self.score[self.glob][barnr]:
-                    if unit and unit != self.score[self.glob][barnr]['u']:
-                        if multibar:
-                            content.append(getMultirest(restStr, multibar))
-                            multibar = 0
-                    unit = self.score[self.glob][barnr]['u']
-                    restStr = 'R' + unit
-                if bar:
-                    if multibar:
-                        content.append(getMultirest(restStr, multibar))
-                        multibar = 0
-                    # Some music
-                    content.append(bar + " |")
-                else:
-                    multibar += 1
-            if multibar:
-                content.append(getMultirest(restStr, multibar))
-                multibar = 0
-            self.replaceLyPartContent(part, self.shortScoreMusicToLy("\n".join(content)))
+            self.mxml_exporter.setup_part(part)
+            for bar in part:
+                self.mxml_exporter.export_bar(bar)
+        self.ssc_exporter.write_to_file()
+
+    def import_from_mxml(self, xmlfile):
+        """Import from MusicXML file"""
+        importer = MusicXMLImporter(xmlfile)
+        self.backtranslator.translate_back(importer.do_import())
+
