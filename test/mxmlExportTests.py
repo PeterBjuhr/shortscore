@@ -18,13 +18,16 @@ class MXLMExportTests(unittest.TestCase):
         self.ssc_exporter = MusicXMLExporter()
 
     def test_basics(self):
-        expected_str = """<score-partwise version="3.0"><measure><attributes><divisions>1</divisions></attributes><note><pitch><step>A</step><octave>3</octave></pitch><duration>1</duration><type>quarter</type></note><note><pitch><step>B</step><alter>-1</alter><octave>3</octave></pitch><duration>1</duration><type>quarter</type></note><note><pitch><step>C</step><octave>3</octave></pitch><duration>2</duration><type>half</type></note></measure></score-partwise>"""
+        with open('testfiles/expected_basics.xml') as file_obj:
+            expected_str = file_obj.read()
+        self.ssc_exporter.setup_part('test', 1)
         self.ssc_exporter.export_bar('a4 bf c2')
         resulting_str = self.ssc_exporter.write_to_str()
-        self.assertEquals(resulting_str, expected_str)
+        self.assertEquals(resulting_str, expected_str.strip())
 
     def test_divisions(self):
         expected_divs = 8
+        self.ssc_exporter.setup_part('test', 1)
         self.ssc_exporter.export_bar('a32 bf g8 c2.')
         resulting_divs = self.ssc_exporter.divisions
         self.assertEquals(resulting_divs, expected_divs)

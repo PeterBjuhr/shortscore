@@ -184,7 +184,7 @@ class Duration(BarTemporals):
             1: 'whole',
             2: 'half',
             4: 'quarter',
-            8: 'eight',
+            8: 'eighth',
             16: '16th',
             32: '32nd'
         }

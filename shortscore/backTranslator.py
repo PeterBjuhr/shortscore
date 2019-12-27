@@ -13,6 +13,8 @@ class BackTranslator:
  
     def translate_back(self, shortscore_parser_objects, use_implicit = True):
         for parser_object in shortscore_parser_objects:
+            if parser_object is None:
+                continue
             token = parser_object.get_token()
             if token:
                 if use_implicit and isinstance(parser_object, self.implicit):

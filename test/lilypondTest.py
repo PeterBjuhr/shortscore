@@ -7,7 +7,7 @@ try:
     from shortscore.shortScore import ShortScore
     from shortscore.lilypond.lilypondExporter import LilypondExporter
     from shortscore.lilypond.lilypondImporter import LilypondImporter
-    import shortscore.lilypond.lilypondFuncs
+    import shortscore.lilypond.lilypondFuncs as lilypondFuncs
 except ImportError:
     import sys
     sys.path.append('../shortscore')
@@ -56,9 +56,8 @@ class ShortScoreTestCase(unittest.TestCase):
 
     def testParseLyGlob(self):
         expected = [{'u': '2.', 'm': '3/4'}, '', '', '', '', {'rm': 'd', 'u': '2.'}, '', '', '', '', '']
-        self.importer.ssc_score[self.importer.glob] = []
         self.importer.parse_lyglob()
-        result = self.importer.ssc_score[self.importer.glob]
+        result = self.importer.ssc_score['glob']
         self.assertEquals(result, expected)
 
     def testGetBracketPositions(self):
@@ -97,14 +96,6 @@ class ShortScoreTestCase(unittest.TestCase):
         self.importer.parse_lypart(partname, part)
         self.assertEquals(self.importer.ssc_score[partname], ['a2.:pp', 'bes2.~'])
 
-    def testReadLyVars(self):
-        self.importer.read_lyvars()
-        self.assertEquals(self.importer.glob, 'tstGlob')
-        expectedTstGlobPart = [{'u': '2.', 'm': '3/4', 'barnr': 0}, '', '', '', '', {'rm': 'd', 'u': '2.', 'barnr': 5}, '', '', '', '', '']
-        self.assertEquals(self.importer.ssc_score['tstGlob'], expectedTstGlobPart)
-        expectedTstClarinetPart = ['a2.:pp', 'bes2.~', '', '', '', '', '', '', '', '', '']
-        self.assertEquals(self.importer.ssc_score['tstClarinet'], expectedTstClarinetPart)
-
     def testHandleMultibarRests(self):
         glob = """\\time 6/8
         s2.*4"""
@@ -118,6 +109,16 @@ class ShortScoreTestCase(unittest.TestCase):
         self.importer.handle_multibar_rests('tstSoloViolin', 'R4.*4', 2)
         result = self.importer.ssc_score['tstSoloViolin']
         self.assertEquals(result, ['', ''])
+
+    def testMultibarRestsComplexTime(self):
+        glob = """\\time 5/8
+        s8*5*8"""
+        self.importer.ssc_score[self.importer.glob] = []
+        self.importer.parse_lyglob(glob)
+        self.importer.ssc_score['tstSoloViolin'] = []
+        self.importer.handle_multibar_rests('tstSoloViolin', 'R8*5*4', 2)
+        result = self.importer.ssc_score['tstSoloViolin']
+        self.assertEquals(result, ['', '', '', ''])
 
     def testOutputGlobalDataToLy(self):
         glob_dict = {'m': '1'}
