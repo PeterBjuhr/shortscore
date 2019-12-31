@@ -35,12 +35,44 @@ class MusicXMLImporter():
         else:
             self.root = ET.fromstring(xml)
 
+    def import_partdef(self):
+        def get_abbr(text):
+            abbr = []
+            for word in text.split():
+                for word_part in word.split('-'):
+                    abbr.append(word_part[:1])
+            if len(abbr) > 1:
+                return "".join(abbr).lower()
+            else:
+                return text[:3].lower()
+
+        for partlist in self.root.iter('part-list'):
+            for score_part in partlist:
+                part_id = score_part.get('id')
+                part_name = part_abbr = ''
+                for item in score_part:
+                    if item.tag == 'part-name':
+                        part_name = item.text
+                    elif item.tag == 'part-abbreviation':
+                        part_abbr = item.text
+                if not part_abbr:
+                    part_abbr = get_abbr(part_name)
+                else:
+                    part_abbr = part_abbr.replace('.', '').lower()
+                yield part_id, part_name, part_abbr
+
     def do_import(self):
-        for bar in self.root.iter('measure'):
-            for item in bar:
-                for item in self.import_bar_items(item):
-                    if item is not None:
-                        yield item
+        import_dict = {}
+        import_dict['partdef'] = self.import_partdef()
+        import_dict['parts'] = {}
+        for part in self.root.iter('part'):
+            part_id = part.get('id')
+            import_dict['parts'][part_id] = []
+            for bar in part.iter('measure'):
+                bar_nr = bar.get('number')
+                bar_gen = (item for bar_item in bar for item in self.import_bar_items(bar_item))
+                import_dict['parts'][part_id].append((bar_nr, bar_gen))
+        return import_dict
 
     def has_children(self, node):
         return len(node)

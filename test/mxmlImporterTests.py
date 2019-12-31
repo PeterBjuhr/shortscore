@@ -18,14 +18,19 @@ class MXLMImporterTests(unittest.TestCase):
         self.ssc_backtranslator = BackTranslator()
 
     def generic_import_test_from_file(self, xmlfile, expected_str):
+        self.ssc_exporter.setup_part('test', 1)
         importer = MusicXMLImporter('testfiles/' + xmlfile)
-        resulting_str = "".join(self.ssc_backtranslator.translate_back(importer.do_import())).strip()
+        import_dict = importer.do_import()
+        parser_obj_generator = import_dict['parts']['P1'][0][1]
+        resulting_str = "".join(self.ssc_backtranslator.translate_back(parser_obj_generator)).strip()
         self.assertEquals(resulting_str, expected_str)
 
     def generic_export_import_test(self, export_import_str):
+        self.ssc_exporter.setup_part('test', 1)
         self.ssc_exporter.export_bar(export_import_str)
         importer = MusicXMLImporter(self.ssc_exporter.write_to_str())
-        parser_obj_generator = importer.do_import()
+        import_dict = importer.do_import()
+        parser_obj_generator = import_dict['parts']['P1'][0][1]
         resulting_str = "".join(self.ssc_backtranslator.translate_back(list(parser_obj_generator))).strip()
         self.assertEquals(resulting_str, export_import_str)
 

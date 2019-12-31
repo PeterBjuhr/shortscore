@@ -1,3 +1,5 @@
+import os
+
 from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
 from shortscore.backTranslator import BackTranslator
@@ -11,9 +13,7 @@ class ShortScore():
     Representing a shortscore
     """
     def __init__(self, language='default'):
-        self.lexer = ShortScoreLexer(language)
-        self.parser = ShortScoreParser(language)
-        self.mxml_exporter = MusicXMLExporter(language)
+        self.set_language(language)
         self.backtranslator = BackTranslator()
         self.unit = '1'
         self.parts = []
@@ -21,6 +21,12 @@ class ShortScore():
         glob = 'glob'
         self.glob = glob
         self.init_score()
+
+    def set_language(self, language):
+        self.language = language
+        self.lexer = ShortScoreLexer(language)
+        self.parser = ShortScoreParser(language)
+        self.mxml_exporter = MusicXMLExporter(language)
 
     def init_score(self):
         self.score = {}
@@ -43,11 +49,11 @@ class ShortScore():
             ssc = text
         return partdef, ssc
 
-    def read_partdef(self, partdef, flipped=True):
+    def read_partdef(self, partdef, flipped=False):
         partdef_dict = {}
-        for l in partdef.split("\n"):
-            if l.strip():
-                partname, shortname = tuple(l.split("="))
+        for line in partdef.split("\n"):
+            if line.strip():
+                partname, shortname = tuple(line.split("="))
                 if flipped:
                     partdef_dict[partname.strip()] = shortname.strip()
                 else:
@@ -76,7 +82,7 @@ class ShortScore():
     def read_shortscore(self, shortscore_file):
         # Get scortcore
         partdef, ssc_str = self.get_shortscore_from_file(shortscore_file)
-        self.partdef = partdef_dict = self.read_partdef(partdef, False)
+        self.partdef = partdef_dict = self.read_partdef(partdef)
         self.parts = partdef_dict.keys()
         # Read shortscore
         self.init_score()
@@ -132,24 +138,18 @@ class ShortScore():
                 glob_list.append(":".join([key, glob_dict[key]]))
         return ",".join(glob_list)
 
-    def get_parts_from_partdef(self, partdef_dict):
-        parts = []
-        for p in self.parts:
-            if p in partdef_dict:
-                parts.append(partdef_dict[p])
-            else:
-                parts.append(p)
-        return parts
-
     def write_to_shortscore_file(self, shortscore_file):
-        # Read part definition
-        partdef, ssc = self.get_shortscore_from_file(shortscore_file)
-        partdef_dict = self.read_partdef(partdef)
-        # Write to file
+        if os.path.isfile(shortscore_file):
+            partdef, ssc = self.get_shortscore_from_file(shortscore_file)
+            partdef_dict = self.read_partdef(partdef, flipped=True)
+        else:
+            partdef_dict = {fullname: shortname for shortname, fullname in self.partdef.items()}
+            partdef = "\n".join("=".join((fullname, shortname)) for fullname, shortname in partdef_dict.items())
+            partdef += "\n"
         with open(shortscore_file, "w") as w:
             w.write(partdef)
             w.write("@@@\n")
-            for barnr, bar in enumerate(self.score[self.glob]):
+            for barnr, bar in enumerate(self.score['glob']):
                 if bar:
                     w.write(self.global_data_to_str(bar) + "@\n")
                 bardict = {}
@@ -186,16 +186,31 @@ class ShortScore():
 	importer = LilypondImporter(lyfile)
 	importer.import_from_lyfile(self)
 
-    def export_to_mxml(self):
+    def export_to_mxml(self, xml_file):
         """Export to MusicXML file"""
-        for part in self.parts:
-            self.mxml_exporter.setup_part(part)
-            for bar in part:
-                self.mxml_exporter.export_bar(bar)
-        self.ssc_exporter.write_to_file()
+        for num, part in enumerate(self.parts):
+            self.mxml_exporter.setup_part(part, num)
+            for num, bar in enumerate(self.score[part]):
+                bar_number = num + 1
+                if bar:
+                    self.mxml_exporter.export_bar(bar, bar_number)
+                else:
+                    self.mxml_exporter.make_multi_rest(bar_number)
+        self.mxml_exporter.write_to_file(xml_file)
 
     def import_from_mxml(self, xmlfile):
         """Import from MusicXML file"""
         importer = MusicXMLImporter(xmlfile)
-        self.backtranslator.translate_back(importer.do_import())
-
+        import_dict = importer.do_import()
+        partdef_list = list(import_dict['partdef'])
+        self.partdef = {pabbr: pname for pid, pname, pabbr in partdef_list}
+        mxml_partdef = {pid: pabbr for pid, pname, pabbr in partdef_list}
+        for part_id in import_dict['parts']:
+            ssc_part = mxml_partdef[part_id]
+            self.parts.append(ssc_part)
+            self.score[ssc_part] = []
+            for bar_number, bar_gen in import_dict['parts'][part_id]:
+                bar = "".join(self.backtranslator.translate_back(bar_gen))
+                self.score[mxml_partdef[part_id]].append(bar)
+        mult = int(bar_number) - 1
+        self.score['glob'] = [''] * mult

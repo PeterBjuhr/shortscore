@@ -11,16 +11,33 @@ class LilypondImporter():
         self.unit = '1'
         self.lyscheme = []
         self.lyfile = lyfile
+        self.language = self.read_language()
         glob, parts = self.get_partnames_from_ly()
         self.parts = parts
+        self.partdef = {}
 	self.ssc_score = {}
         if glob:
             self.glob = glob
 
-    def get_partnames_from_ly(self):
+    def read_lyfile(self):
         with open(self.lyfile) as r:
             text = r.read()
+        return text
+
+    def read_language(self):
+        text = self.read_lyfile()
+        lang_search = re.search(r'\\language\s*"(\w+)"', text)
+        if lang_search:
+            lang = lang_search.group(1).strip()
+            if lang == 'english':
+                lang = 'default'
+        else:
+            lang = 'dutch'
+        return lang
+
+    def get_partnames_from_ly(self):
         parts = []
+        text = self.read_lyfile()
         parts = re.findall(r"(\w+)\s*=\s*(?:\\\w+\s*\w+[',]*\s*)?{", text)
         glob_match = re.search(r"\\new Devnull\s*\{?\s*\\(\w+)", text)
         if glob_match:
@@ -31,6 +48,8 @@ class LilypondImporter():
         return glob, parts
 
     def parse_lyglob(self, glob=None):
+        if 'glob' not in self.ssc_score:
+            self.ssc_score['glob'] = []
         if glob is None:
             glob = self.get_partcontent_from_ly(self.glob)
         glob_dict = {}
@@ -70,16 +89,15 @@ class LilypondImporter():
                     scheme_mult = mult
                     if glob_dict:
                         glob_dict['u'] = unit
-                        self.ssc_score[self.glob].append(glob_dict)
+                        self.ssc_score['glob'].append(glob_dict)
                         scheme_dict.update(glob_dict)
                         glob_dict = {}
                         mult -= 1
-                    self.ssc_score[self.glob] += [''] * mult
+                    self.ssc_score['glob'] += [''] * mult
                     self.lyscheme += [scheme_dict] * scheme_mult
 
     def get_partcontent_from_ly(self, partname):
-        with open(self.lyfile) as r:
-            text = r.read()
+        text = self.read_lyfile()
         pos = text.find(partname + ' =')
         if pos > 0:
             text = text[pos:]
@@ -117,27 +135,27 @@ class LilypondImporter():
                 unit = glob_dict['u']
                 timesign = glob_dict['m']
                 w = w.replace('R', '')
-                match = re.match(unit + r'*(\d+)', w)
                 if w == unit:
                     r = 1
-                elif match:
-                    r = int(match.group(1))
-                else:
-                    n = w.split('*')
-                    time_fraction = Fraction(timesign)
-                    rest_num = multiply_list(n[1:])
-                    rest_den = n[0]
-                    if '.' in rest_den:
-                        undotted = rest_den.replace('.', '')
-                        rest_den = int(undotted) * 2
-                        rest_num *= 3
-                    else:
-                        rest_den = int(rest_den)
-                    rest_fraction = Fraction(rest_num, rest_den)
-                    quotient = rest_fraction / time_fraction
-                    if quotient.denominator > 1:
-                        print("Something went wrong when calculating multibar rests!")
-                    r = quotient.numerator
+                elif '*' in w:
+                    wsplit = w.split('*')
+                    u, mults = wsplit[0], wsplit[1:]
+                    r = multiply_list(mults)
+                    if u != unit:
+                        if '*' in unit:
+                            multiplicand, multiplier = unit.split('*')
+                            unit = Fraction(1, int(multiplicand)) * int(multiplier)
+                        elif '.' in unit:
+                            unit = unit.replace('.', '')
+                            unit = Fraction(1, int(unit)) * Fraction(3, 2)
+                        else:
+                            unit = Fraction(1, int(unit))
+                        if '.' in u:
+                            u = u.replace('.', '')
+                            u = Fraction(1, int(u)) * Fraction(3, 2)
+                        else:
+                            u = Fraction(1, int(u))
+                        r = int((u / unit) * r)
                 self.ssc_score[partname] += [''] * r
                 del words[i]
         return " ".join(words)
@@ -151,38 +169,27 @@ class LilypondImporter():
                 self.ssc_score[partname].append(b)
 
     def read_lyvars(self):
+        self.ssc_score['glob'] = []
         if self.glob:
-            self.ssc_score[self.glob] = []
             self.parse_lyglob()
-        else:
-            self.glob = "Glob"
-            self.ssc_score[self.glob] = []
         max = 0
         for part in self.parts:
-            self.ssc_score[part] = []
-            self.parse_lypart(part, self.get_partcontent_from_ly(part))
-            if len(self.ssc_score[part]) > max:
-                max = len(self.ssc_score[part])
-        if len(self.ssc_score[self.glob]) < max:
-            r = max - len(self.ssc_score[self.glob])
-            self.ssc_score[self.glob] += [''] * r
+            if part not in self.partdef:
+                continue
+            ssc_part = self.partdef[part]
+            self.ssc_score[ssc_part] = []
+            self.parse_lypart(ssc_part, self.get_partcontent_from_ly(part))
+            if len(self.ssc_score[ssc_part]) > max:
+                max = len(self.ssc_score[ssc_part])
+        if len(self.ssc_score['glob']) < max:
+            r = max - len(self.ssc_score['glob'])
+            self.ssc_score['glob'] += [''] * r
         self.set_barnr_in_glob()
 
     def set_barnr_in_glob(self):
-        for barnr, glob_dict in enumerate(self.ssc_score[self.glob]):
+        for barnr, glob_dict in enumerate(self.ssc_score['glob']):
             if glob_dict:
                 glob_dict['barnr'] = barnr
-
-    def read_partdef(self, partdef, flipped=True):
-        partdef_dict = {}
-        for l in partdef.split("\n"):
-            if l.strip():
-                partname, shortname = tuple(l.split("="))
-                if flipped:
-                    partdef_dict[partname.strip()] = shortname.strip()
-                else:
-                    partdef_dict[shortname.strip()] = partname.strip()
-        return partdef_dict
 
     def apply_globally_to_all_lyparts(self, text, barnr, after=False):
         for p in self.parts:
@@ -194,5 +201,7 @@ class LilypondImporter():
                 self.score[p][barnr] = " ".join(music)
 
     def import_from_lyfile(self, ssc):
+        ssc.set_language(self.language)
 	self.ssc_score = ssc.score
+        self.partdef = {value: key for key, value in ssc.partdef.items()}
         self.read_lyvars()
