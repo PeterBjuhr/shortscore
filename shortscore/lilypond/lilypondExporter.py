@@ -55,7 +55,9 @@ class LilypondExporter():
         text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
         text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
         text = re.sub(r'\b([\w\.\',]+)\s*:chi:(\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
+        text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)
         text = re.sub(r' +', ' ', text)
+        text = text.replace('-', '~')
         return text
 
     def export_to_lyfile(self, ssc):
