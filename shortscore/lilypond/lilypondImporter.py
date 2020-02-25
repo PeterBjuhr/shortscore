@@ -205,5 +205,7 @@ class LilypondImporter():
     def import_from_lyfile(self, ssc):
         ssc.set_language(self.language)
 	self.ssc_score = ssc.score
+        if not ssc.partdef:
+            print("Warning! Please initiate schortscore from file")
         self.partdef = {value: key for key, value in ssc.partdef.items()}
         self.read_lyvars()
