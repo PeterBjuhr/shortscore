@@ -108,12 +108,16 @@ class LilypondImporter():
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d+)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>\\\g<2>:\g<3>', text)
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'[\g<3>]:\g<1>\\\g<2>', text)
         text = re.sub(r'(\]:\d+\\\d+):\s', r'\g<1> ', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*([a-gis]+\d*)', r'\g<1>:g', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:g', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>:gr', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:gr', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
-        text = re.sub(r'\\([mpf]+)\b', r':\g<1>', text)
+        text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
+        text = re.sub(r'([a-gis\',])\((.+)\)', r'(\g<1> \g<2>)', text)
+        text = text.replace('--', '__')
+        text = re.sub(r'-(.)', r'_\g<1>', text)
+        text = re.sub(r'\s+', r' ', text)
         text = text.replace('~', '-')
         return text
 
@@ -130,6 +134,7 @@ class LilypondImporter():
         words = bar.split()
         for i, w in enumerate(words):
             if 'R' in w:
+                r = 1
                 if barnr < len(self.lyscheme):
                     glob_dict = self.lyscheme[barnr]
                 else:
@@ -137,12 +142,14 @@ class LilypondImporter():
                 unit = glob_dict['u']
                 timesign = glob_dict['m']
                 w = w.replace('R', '')
-                if w == unit:
-                    r = 1
-                elif '*' in w:
-                    wsplit = w.split('*')
-                    u, mults = wsplit[0], wsplit[1:]
-                    r = multiply_list(mults)
+                if w != unit and '*' in w:
+                    if unit in w:
+                        u = unit
+                        w = w.replace(unit, '')
+                        mults = w.replace('*', '')
+                    else:
+                        u, mults = w.split('*')
+                    r = multiply_list(mults) or 1
                     if u != unit:
                         if '*' in unit:
                             multiplicand, multiplier = unit.split('*')
@@ -205,5 +212,7 @@ class LilypondImporter():
     def import_from_lyfile(self, ssc):
         ssc.set_language(self.language)
 	self.ssc_score = ssc.score
+        if not ssc.partdef:
+            print("Warning! Please initiate schortscore from file")
         self.partdef = {value: key for key, value in ssc.partdef.items()}
         self.read_lyvars()
