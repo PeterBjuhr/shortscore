@@ -134,6 +134,7 @@ class LilypondImporter():
         words = bar.split()
         for i, w in enumerate(words):
             if 'R' in w:
+                r = 1
                 if barnr < len(self.lyscheme):
                     glob_dict = self.lyscheme[barnr]
                 else:
@@ -141,12 +142,14 @@ class LilypondImporter():
                 unit = glob_dict['u']
                 timesign = glob_dict['m']
                 w = w.replace('R', '')
-                if w == unit:
-                    r = 1
-                elif '*' in w:
-                    wsplit = w.split('*')
-                    u, mults = wsplit[0], wsplit[1:]
-                    r = multiply_list(mults)
+                if w != unit and '*' in w:
+                    if unit in w:
+                        u = unit
+                        w = w.replace(unit, '')
+                        mults = w.replace('*', '')
+                    else:
+                        u, mults = w.split('*')
+                    r = multiply_list(mults) or 1
                     if u != unit:
                         if '*' in unit:
                             multiplicand, multiplier = unit.split('*')
