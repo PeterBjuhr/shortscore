@@ -103,10 +103,10 @@ class LilypondExporter():
                         content.append(get_multirest(rest_str, multibar))
                         multibar = 0
                     # Some music
-                    content.append(bar + " |")
+                    content.append(self.shortscore_to_ly(bar) + " |")
                 else:
                     multibar += 1
             if multibar:
                 content.append(get_multirest(rest_str, multibar))
                 multibar = 0
-            self.replace_ly_partcontent(ly_part, self.shortscore_to_ly("\n".join(content)))
+            self.replace_ly_partcontent(ly_part, "\n".join(content))
