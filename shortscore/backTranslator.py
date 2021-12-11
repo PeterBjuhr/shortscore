@@ -1,4 +1,4 @@
-from parseTreeClasses import NoteStart, NoteEnd, PitchStart, PitchEnd, PitchStep, PitchAlter, Octave, Duration
+from .parseTreeClasses import NoteStart, NoteEnd, PitchStart, PitchEnd, PitchStep, PitchAlter, Octave, Duration
 
 class BackTranslator:
     """Translates back to shortscore text from parse tree structure"""

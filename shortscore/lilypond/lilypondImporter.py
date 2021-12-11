@@ -1,7 +1,7 @@
 from fractions import Fraction
 import re
 
-import lilypondFuncs
+from .lilypondFuncs import *
 
 class LilypondImporter():
     """
@@ -15,7 +15,7 @@ class LilypondImporter():
         glob, parts = self.get_partnames_from_ly()
         self.parts = parts
         self.partdef = {}
-	self.ssc_score = {}
+        self.ssc_score = {}
         if glob:
             self.glob = glob
 
@@ -211,7 +211,7 @@ class LilypondImporter():
 
     def import_from_lyfile(self, ssc):
         ssc.set_language(self.language)
-	self.ssc_score = ssc.score
+        self.ssc_score = ssc.score
         if not ssc.partdef:
             print("Warning! Please initiate schortscore from file")
         self.partdef = {value: key for key, value in ssc.partdef.items()}
