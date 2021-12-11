@@ -12,12 +12,16 @@ class ShortScore():
     """
     Representing a shortscore
     """
-    def __init__(self, language='default'):
+    def __init__(self, ssc_file=None, language='default'):
         self.set_language(language)
         self.backtranslator = BackTranslator()
         self.unit = '1'
         self.parts = []
-        self.partdef = {}
+        if ssc_file:
+            partdef, self.ssc_text = self.get_shortscore_from_file(ssc_file)
+            self.partdef = self.read_partdef(partdef)
+        else:
+            self.partdef = {}
         glob = 'glob'
         self.glob = glob
         self.init_score()
@@ -153,38 +157,36 @@ class ShortScore():
                 if bar:
                     w.write(self.global_data_to_str(bar) + "@\n")
                 bardict = {}
-                for part in self.parts:
-                    if part in partdef_dict:
-                        partname = partdef_dict[part]
-                    else:
-                        partname = part
+                for part in self.score:
+                    if part == 'glob':
+                        continue
                     try:
                         if self.score[part][barnr]:
                             # Use music as key
                             key = self.score[part][barnr]
                             if key in bardict:
-                                bardict[key].append(partname)
+                                bardict[key].append(part)
                             else:
-                                bardict[key] = [partname]
+                                bardict[key] = [part]
                     except IndexError:
                         pass
                 # write bar
-                mo = []
-                for m in bardict:
-                    mo.append(",".join(bardict[m]) + ":: " + m)
-                w.write(" / ".join(mo))
+                parts_list = []
+                for music in bardict:
+                    parts_list.append(",".join(bardict[music]) + ":: " + music)
+                w.write(" / ".join(parts_list))
                 w.write(" |\n")
 
     def export_to_ly(self, lyfile):
         """Export to lilypond file"""
-	exporter = LilypondExporter(lyfile)
-	exporter.export_to_lyfile(self)
+        exporter = LilypondExporter(lyfile)
+        exporter.export_to_lyfile(self)
 
     def import_from_ly(self, lyfile):
         """Import from lilypond file"""
-	self.init_score()
-	importer = LilypondImporter(lyfile)
-	importer.import_from_lyfile(self)
+        self.init_score()
+        importer = LilypondImporter(lyfile)
+        importer.import_from_lyfile(self)
 
     def export_to_mxml(self, xml_file):
         """Export to MusicXML file"""

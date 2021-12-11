@@ -49,15 +49,19 @@ class LilypondExporter():
         return "\n".join(output)
 
     def shortscore_to_ly(self, text):
+        text = text.replace('-', '~')
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
         text = re.sub(r'([a-gis\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
-        text = re.sub(r'\b([a-gis\d]+):g', r"\\acciaccatura \g<1>", text)
-        text = re.sub(r'\[([^\]]+)\]:g', r"\\acciaccatura {\g<1>}", text)
-        text = re.sub(r':([mpf]+)\b', r"\\\g<1>", text)
+        text = re.sub(r'\b([\w\'\,]+\d*\.*):gr', r"\\acciaccatura \g<1>", text)
+        text = re.sub(r'\[([^\]]+)\]:gr', r"\\acciaccatura {\g<1>}", text)
+        text = text.replace('__', '--')
+        text = re.sub(r'_(.)', r'-\g<1>', text)
+        text = re.sub(r':(\D+)\b', r"\\\g<1>", text)
+        text = re.sub(r'.\)\b', r"\\\fermata", text)
         text = re.sub(r'\b([\w\.\',]+)\s*:chi:(\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)
+        text = re.sub(r'\(([a-gis\',<]+\d*\.*)', r'\g<1>(', text)
         text = re.sub(r' +', ' ', text)
-        text = text.replace('-', '~')
         return text
 
     def export_to_lyfile(self, ssc):
@@ -99,10 +103,10 @@ class LilypondExporter():
                         content.append(get_multirest(rest_str, multibar))
                         multibar = 0
                     # Some music
-                    content.append(bar + " |")
+                    content.append(self.shortscore_to_ly(bar) + " |")
                 else:
                     multibar += 1
             if multibar:
                 content.append(get_multirest(rest_str, multibar))
                 multibar = 0
-            self.replace_ly_partcontent(ly_part, self.shortscore_to_ly("\n".join(content)))
+            self.replace_ly_partcontent(ly_part, "\n".join(content))
