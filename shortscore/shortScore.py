@@ -1,12 +1,12 @@
 import os
 
-from shortscore.shortScoreLexer import ShortScoreLexer
-from shortscore.shortScoreParser import ShortScoreParser
-from shortscore.backTranslator import BackTranslator
-from lilypond.lilypondExporter import LilypondExporter
-from lilypond.lilypondImporter import LilypondImporter
-from musicxml.musicxmlExporter import MusicXMLExporter
-from musicxml.musicxmlImporter import MusicXMLImporter
+from .shortScoreLexer import ShortScoreLexer
+from .shortScoreParser import ShortScoreParser
+from .backTranslator import BackTranslator
+from .lilypond.lilypondExporter import LilypondExporter
+from .lilypond.lilypondImporter import LilypondImporter
+from .musicxml.musicxmlExporter import MusicXMLExporter
+from .musicxml.musicxmlImporter import MusicXMLImporter
 
 class ShortScore():
     """

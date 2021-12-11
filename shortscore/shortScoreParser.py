@@ -1,4 +1,4 @@
-from parseTreeClasses import *
+from .parseTreeClasses import *
 
 class ShortScoreParser:
     """

@@ -1,6 +1,6 @@
 import re
 
-import lilypondFuncs
+from .lilypondFuncs import *
 
 class LilypondExporter():
     """
