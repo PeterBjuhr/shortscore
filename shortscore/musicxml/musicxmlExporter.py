@@ -94,4 +94,4 @@ class MusicXMLExporter():
         with open(filename, 'w') as file_obj:
             file_obj.write('<?xml version="1.0" encoding="UTF-8"?>')
             file_obj.write('<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
-            self.tree.write(file_obj)
+            self.tree.write(file_obj, encoding='unicode')
