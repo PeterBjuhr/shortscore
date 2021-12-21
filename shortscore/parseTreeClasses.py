@@ -148,6 +148,10 @@ class Octave(ParseTreeObject):
         else: # == 0
             self.token = ''
 
+class Rest(ParseTreeObject):
+    """Representing a rest"""
+    pass
+
 class BarTemporals(ParseTreeObject):
     """Keeping track of temporal stuff for the bar"""
     time_fraction = Fraction('4/4')
@@ -217,5 +221,3 @@ class Duration(BarTemporals):
 
     def modify_dot(self, text):
         self.token += '.'
-
-

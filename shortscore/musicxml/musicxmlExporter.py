@@ -8,7 +8,8 @@ class MusicXMLExporter():
 
     naming = {
             'PitchStep': 'step',
-            'PitchAlter': 'alter'
+            'PitchAlter': 'alter',
+            'Rest': 'rest'
         }
 
     replaces = ['Start', 'End']
