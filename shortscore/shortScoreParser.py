@@ -10,12 +10,14 @@ class ShortScoreParser:
             'pitchstep': PitchStep,
             'pitchalter': PitchAlter,
             'octave': Octave,
-            'duration': Duration
+            'duration': Duration,
+            'rest': Rest
         }
 
     before_classes = {
             PitchStep: PitchStart,
-            PitchStart: NoteStart
+            PitchStart: NoteStart,
+            Rest: NoteStart
         }
 
     after_classes = {
@@ -23,9 +25,10 @@ class ShortScoreParser:
             Duration: NoteEnd
         }
 
-    implicit_classes = { #Implicit token type: token type before the implicit
-            'duration': 'octave'
-        }
+    implicit_classes = [ # token type before the implicit, Implicit token type
+            ('octave', 'duration'),
+            ('rest', 'duration')
+        ]
 
     def __init__(self, language = 'default'):
         self.language = language
@@ -33,6 +36,11 @@ class ShortScoreParser:
     def init_bar(self):
         BarTemporals.durations = []
         Pitch.language = self.language
+
+    def search_implicit(self, lex_type, flip=False):
+        if flip:
+            return [(itype, ltype) for ltype, itype in self.implicit_classes if itype == lex_type]
+        return ((ltype, itype) for ltype, itype in self.implicit_classes if ltype == lex_type)
 
     def generate_all_tokens(self, item_class, token_str = None):
         if item_class in self.before_classes:
@@ -48,8 +56,6 @@ class ShortScoreParser:
 
     def parse(self, shortscore_lexer_tokens):
         self.init_bar()
-        implicit = self.implicit_classes 
-        impl_flipped = {v: k for k, v in implicit.items()}
         prev_type = waiting_token = None
         while True:
             if waiting_token:
@@ -59,14 +65,15 @@ class ShortScoreParser:
                 next_token = next(shortscore_lexer_tokens, None)
             if next_token:
                 token_type, token_str = next_token
-            if prev_type in impl_flipped and impl_flipped[prev_type] != token_type:
+            for ltype, itype in self.search_implicit(prev_type):
+                if itype == token_type:
+                    continue
                 waiting_token = next_token
-                token_type = impl_flipped[prev_type]
-                token_str = getattr(self, impl_flipped[prev_type], None)
+                token_type = itype
+                token_str = getattr(self, itype, None)
                 next_token = (token_type, token_str)
-            else:
-                if token_type in implicit:
-                    setattr(self, token_type, token_str)
+            if self.search_implicit(token_type, flip=True):
+                setattr(self, token_type, token_str)
             prev_type = token_type
             if next_token is None:
                 break

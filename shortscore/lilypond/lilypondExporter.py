@@ -15,7 +15,7 @@ class LilypondExporter():
         pos = text.find(partname + ' =')
         if pos:
             slice = text[pos:]
-            start, end = lilypondFuncs.get_bracket_positions(slice)
+            start, end = get_bracket_positions(slice)
             slice = slice[:start + 1] + "\n" + new_content + "\n" + slice[end:]
             text = text[:pos] + slice
         with open(self.lyfile, "w") as w:

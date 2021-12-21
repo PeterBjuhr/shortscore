@@ -101,7 +101,7 @@ class LilypondImporter():
         pos = text.find(partname + ' =')
         if pos > 0:
             text = text[pos:]
-            start, end = lilypondFuncs.get_bracket_positions(text)
+            start, end = get_bracket_positions(text)
             return text[start + 1:end - 1]
 
     def ly2shortscore(self, text):

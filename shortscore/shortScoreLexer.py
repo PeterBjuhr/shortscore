@@ -8,7 +8,8 @@ class ShortScoreLexer:
     def __init__(self, alter_lang = 'default'):
         self._token_types_dict = {
             'notes': self._is_note,
-            'duration': self._is_duration
+            'duration': self._is_duration,
+            'rest': self._is_rest
             }
         if alter_lang == 'dutch':
             self.alter_regex = self.dutch_alter_regex
@@ -38,6 +39,10 @@ class ShortScoreLexer:
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
             yield ("duration", char + "".join(self.reader.read_while(use_re = r'[1-9\.]')))
+
+    def _is_rest(self, char):
+        if char == 'r':
+            yield ("rest", char)
 
 
 class ShortScoreReader:
