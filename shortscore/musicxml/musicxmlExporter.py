@@ -2,20 +2,27 @@ import xml.etree.ElementTree as ET
 
 from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
-from shortscore.parseTreeClasses import Duration
+from shortscore.parseTreeClasses import Duration, TimeModificationStart, Tuplet
 
 class MusicXMLExporter():
 
     naming = {
-            'PitchStep': 'step',
-            'PitchAlter': 'alter',
-            'Rest': 'rest'
+            'pitchstep': 'step',
+            'pitchalter': 'alter',
+            'rest': 'rest',
+            'timemodification': 'time-modification',
+            'notation': 'notations'
         }
 
     replaces = ['Start', 'End']
 
+    attributes = {
+            'Tuplet': ['type']
+        }
+
     add_ons = {
-            'Duration': ['type', 'dot']
+            'Duration': ['type', 'dot'],
+            'TimeModificationEnd': ['actual_notes', 'normal_notes']
         }
 
     def __init__(self, language='default'):
@@ -38,15 +45,20 @@ class MusicXMLExporter():
             input_str = input_str.replace(repl, '')
         return input_str
 
-    def export_bar(self, bar, bar_number=1):
-        self.bar_parent = ET.SubElement(self.part, 'measure')
-        self.bar_parent.set('number', str(bar_number))
+    def calc_divisions(self, bar):
+        duration = None
         for obj in self.ssc_parser.parse(self.ssc_lexer.lex(bar)):
             if isinstance(obj, Duration):
                 duration = obj
-        divisions = self.divisions = duration.calculate_mxml_divisions()
+        duration.calculate_mxml_divisions()
+        return duration.divisions
+
+    def export_bar(self, bar, bar_number=1):
+        self.bar_parent = ET.SubElement(self.part, 'measure')
+        self.bar_parent.set('number', str(bar_number))
         attr = ET.SubElement(self.bar_parent, 'attributes')
         divs = ET.SubElement(attr, 'divisions')
+        divisions = self.divisions = self.calc_divisions(bar)
         divs.text = str(divisions)
         self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
         self.create_nodes_from_parser_objects(self.bar_parent)
@@ -55,11 +67,11 @@ class MusicXMLExporter():
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:
             classname = parser_object.__class__.__name__
-            if classname in self.naming:
-                element_name = self.naming[classname]
-            else:
-                element_name = self.do_replaces(classname).lower()
+            element_name = self.do_replaces(classname).lower()
+            if element_name in self.naming:
+                element_name = self.naming.get(element_name)
             if 'End' in classname:
+                self.check_add_on(parser_object, classname, parent)
                 return
             node = ET.SubElement(parent, element_name)
             if 'Start' in classname:
@@ -67,15 +79,21 @@ class MusicXMLExporter():
             value = parser_object.get_mxml_value()
             if value:
                 node.text = value
-            if classname in self.add_ons:
-                add_on_elements = self.add_ons[classname]
-                for add_on in add_on_elements:
-                    extra_method = getattr(parser_object, 'get_' + add_on, None)
-                    extra_value = extra_method()
-                    if extra_value or extra_value is None:
-                        extra_node = ET.SubElement(parent, add_on)
-                        extra_node.text = extra_value
+            self.check_add_on(parser_object, classname, parent)
+            if classname in self.attributes:
+                for attr in self.attributes[classname]:
+                    attr_method = getattr(parser_object, 'attr_' + attr, None)
+                    node.set(attr, attr_method())
             self.create_nodes_from_parser_objects(parent)
+
+    def check_add_on(self, parser_object, classname, parent):
+        if classname in self.add_ons:
+            for add_on in self.add_ons[classname]:
+                extra_method = getattr(parser_object, 'get_' + add_on, None)
+                extra_value = extra_method()
+                if extra_value or extra_value is None:
+                    extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
+                    extra_node.text = extra_value
 
     def make_multi_rest(self, bar_number):
         self.bar_parent = ET.SubElement(self.part, 'measure')

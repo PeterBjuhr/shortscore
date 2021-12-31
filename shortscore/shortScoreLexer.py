@@ -8,8 +8,10 @@ class ShortScoreLexer:
     def __init__(self, alter_lang = 'default'):
         self._token_types_dict = {
             'notes': self._is_note,
-            'duration': self._is_duration,
-            'rest': self._is_rest
+            'rest': self._is_rest,
+            'tuplet_start': self._is_tuplet_start,
+            'tuplet_end': self._is_tuplet_end,
+            'duration': self._is_duration
             }
         if alter_lang == 'dutch':
             self.alter_regex = self.dutch_alter_regex
@@ -22,6 +24,8 @@ class ShortScoreLexer:
 
     def lex(self, bar_of_music):
         """Generate tuplets of type and string from bar of music"""
+        # trailing tuplet ratio is supported but more difficult to parse
+        bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
         self.reader = ShortScoreReader(bar_of_music)
         for char in self.reader.read_char():
             for token_type in self._token_types_dict:
@@ -38,11 +42,23 @@ class ShortScoreLexer:
 
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
-            yield ("duration", char + "".join(self.reader.read_while(use_re = r'[1-9\.]')))
+            all_chars = char + "".join(self.reader.read_while(use_re = r'[1-9\.\\:]'))
+            if ':' in all_chars:
+                yield ("tuplet_ratio", all_chars)
+            else:
+                yield ("duration", all_chars)
 
     def _is_rest(self, char):
         if char == 'r':
             yield ("rest", char)
+
+    def _is_tuplet_start(self, char):
+        if char == '[':
+            yield ("tuplet_start", char)
+
+    def _is_tuplet_end(self, char):
+        if char == ']':
+            yield ("tuplet_end", char)
 
 
 class ShortScoreReader:

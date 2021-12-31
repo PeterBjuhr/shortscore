@@ -1,85 +1,87 @@
 from .parseTreeClasses import *
+from .grammarDef import GrammarDef
 
 class ShortScoreParser:
     """
-    Parsing of the tokens identified by the lexer.
-    Below is a quasi grammar structure in form of
-    dicts with the relation between different elements.
+    Parsing of the tokens identified by the lexer, using the defined grammar.
     """
-    token_type_to_class_relations = {
-            'pitchstep': PitchStep,
-            'pitchalter': PitchAlter,
-            'octave': Octave,
-            'duration': Duration,
-            'rest': Rest
-        }
-
-    before_classes = {
-            PitchStep: PitchStart,
-            PitchStart: NoteStart,
-            Rest: NoteStart
-        }
-
-    after_classes = {
-            Octave: PitchEnd,
-            Duration: NoteEnd
-        }
-
-    implicit_classes = [ # token type before the implicit, Implicit token type
-            ('octave', 'duration'),
-            ('rest', 'duration')
-        ]
-
     def __init__(self, language = 'default'):
         self.language = language
+        grammar_def = GrammarDef()
+        self.syntax_list = grammar_def.get_grammar_def()
+        self.lexer_notestart, self.lexer_noteend = grammar_def.get_lexer_note_endpoints()
+        self.obj_func_gen = grammar_def.get_obj_functions
+        self.endtokens = {}
 
     def init_bar(self):
         BarTemporals.durations = []
         Pitch.language = self.language
 
-    def search_implicit(self, lex_type, flip=False):
-        if flip:
-            return [(itype, ltype) for ltype, itype in self.implicit_classes if itype == lex_type]
-        return ((ltype, itype) for ltype, itype in self.implicit_classes if ltype == lex_type)
-
-    def generate_all_tokens(self, item_class, token_str = None):
-        if item_class in self.before_classes:
-            for token_object in self.generate_all_tokens(self.before_classes[item_class]):
-                yield token_object
-        token_object = item_class()
-        if token_str:
-            token_object.set_token(token_str)
-        yield token_object
-        if item_class in self.after_classes:
-            for token_object in self.generate_all_tokens(self.after_classes[item_class]):
-                yield token_object
-
     def parse(self, shortscore_lexer_tokens):
         self.init_bar()
-        prev_type = waiting_token = None
+        note_tokens = []
         while True:
-            if waiting_token:
-                next_token = waiting_token
-                waiting_token = None
-            else:
-                next_token = next(shortscore_lexer_tokens, None)
-            if next_token:
-                token_type, token_str = next_token
-            for ltype, itype in self.search_implicit(prev_type):
-                if itype == token_type:
-                    continue
-                waiting_token = next_token
-                token_type = itype
-                token_str = getattr(self, itype, None)
-                next_token = (token_type, token_str)
-            if self.search_implicit(token_type, flip=True):
-                setattr(self, token_type, token_str)
-            prev_type = token_type
+            next_token = next(shortscore_lexer_tokens, None)
             if next_token is None:
+                if note_tokens and note_tokens[-1][0] in self.lexer_noteend:
+                    yield from self.parse_note(note_tokens)
+                else:
+                    raise Exception('Wrong syntax: incomplete note!')
                 break
-            if token_type in self.token_type_to_class_relations:
-                item_class = self.token_type_to_class_relations[token_type]
-                for token_object in self.generate_all_tokens(item_class, token_str):
-                    yield token_object
-            else:
-                raise Exception("Unexpected token: " + ": ".join((token_type, token_str)))
+            token_type, _ = next_token
+            if token_type in self.lexer_notestart:
+                if note_tokens and note_tokens[-1][0] in self.lexer_noteend:
+                    yield from self.parse_note(note_tokens)
+                    note_tokens = []
+            note_tokens.append(next_token)
+
+    def parse_note(self, note_tokens):
+        for grammar_obj in self.syntax_list:
+            if not grammar_obj.lexernames and grammar_obj.optional == 'no':
+                yield self.create_obj_from_classname(grammar_obj.classname)
+                continue
+            try:
+                token_type, token_str = self.find_token(note_tokens, grammar_obj.lexernames)
+                if grammar_obj.optional == 'derived':
+                    setattr(self, grammar_obj.classname.lower(), (token_type, token_str))
+                    if grammar_obj.endtoken:
+                        self.endtokens.setdefault(grammar_obj.endtoken, []).append(grammar_obj.classname.lower())
+                for endtoken_attr in self.endtokens.get(token_type, []):
+                    if hasattr(self, endtoken_attr):
+                        delattr(self, endtoken_attr)
+            except TypeError:
+                if grammar_obj.optional == 'yes':
+                    continue
+                elif grammar_obj.optional == 'derived':
+                    if hasattr(self, grammar_obj.classname.lower()):
+                        token_type, token_str = getattr(self, grammar_obj.classname.lower())
+                    else:
+                        continue
+                else:
+                    required = str(grammar_obj.lexernames)
+                    raise Exception(f"Required token {required} not found!")
+            obj = self.create_obj_from_classname(grammar_obj.classname)
+            if token_str:
+                obj.set_token(token_str)
+            self.check_obj_func(obj, note_tokens)
+            yield obj
+
+    def find_token(self, note_tokens, lexernames):
+        for reqtoken in lexernames:
+            for name, token in note_tokens:
+                if reqtoken == name:
+                    return name, token
+
+    def create_obj_from_classname(self, classname):
+        instance = globals().get(classname)
+        return instance()
+
+    def check_obj_func(self, obj, note_tokens):
+        for classname, func, attr in self.obj_func_gen():
+            if isinstance(obj, globals().get(classname)):
+                if hasattr(self, attr):
+                    getattr(obj, func)(*getattr(self, attr))
+                else:
+                    attrs_in_bar = {g.classname.lower(): self.find_token(note_tokens, g.lexernames) for g in self.syntax_list if self.find_token(note_tokens, g.lexernames)}
+                    if attr in attrs_in_bar:
+                        getattr(obj, func)(*attrs_in_bar.get(attr))
