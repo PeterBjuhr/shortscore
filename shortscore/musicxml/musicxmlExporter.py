@@ -4,6 +4,8 @@ from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
 from shortscore.parseTreeClasses import Duration, TimeModificationStart, Tuplet
 
+from .general_midi import main
+
 class MusicXMLExporter():
 
     naming = {
@@ -32,13 +34,39 @@ class MusicXMLExporter():
         self.tree = ET.ElementTree(self.root)
         self.partlist = ET.SubElement(self.root, 'part-list')
 
+    def set_partdef(self, partdef):
+        def remove_prefix(name):
+            for i, char in enumerate(name):
+                if char.isupper():
+                    return name[i:]
+
+        def do_replaces(name):
+            for remove in ['Lh', 'Rh', 'Solo']:
+                name = name.replace(remove, '')
+            return name
+
+        self.instrument_names = {k: do_replaces(remove_prefix(v)) for k, v in partdef.items()}
+        self.midi_instruments = main()
+
     def setup_part(self, part, num):
+        num += 1
+        partname = self.instrument_names.get(part)
         self.part = ET.SubElement(self.root, 'part')
         self.part.set('id', 'P' + str(num))
         score_part = ET.SubElement(self.partlist, 'score-part')
         score_part.set('id', 'P' + str(num))
         part_name = ET.SubElement(score_part, 'part-name')
-        part_name.text = part
+        part_name.text = partname
+        instrument = ET.SubElement(score_part, 'score-instrument')
+        instrument.set('id', f'P{num}-I{num}')
+        instrument_name = ET.SubElement(instrument, 'instrument-name')
+        instrument_name.text = partname
+        midi_instrument = ET.SubElement(score_part, 'midi-instrument')
+        midi_instrument.set('id', f'P{num}-I{num}')
+        midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
+        midi_channel.text = str(num)
+        midi_program = ET.SubElement(midi_instrument, 'midi-program')
+        midi_program.text = str(self.midi_instruments.get(partname, '1'))
 
     def do_replaces(self, input_str):
         for repl in self.replaces:

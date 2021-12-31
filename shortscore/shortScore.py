@@ -190,6 +190,7 @@ class ShortScore():
 
     def export_to_mxml(self, xml_file):
         """Export to MusicXML file"""
+        self.mxml_exporter.set_partdef(self.partdef)
         for num, part in enumerate(self.parts):
             self.mxml_exporter.setup_part(part, num)
             for num, bar in enumerate(self.score[part]):
