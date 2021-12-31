@@ -29,6 +29,7 @@ NOTEEND = """
     octave
     duration
     tuplet_end
+    rest
     """
 # Define which function to run on the newly created parser obj
 # classname | function name | parser attribute
