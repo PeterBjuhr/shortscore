@@ -1,9 +1,14 @@
 from fractions import Fraction
+import math
 
 class ParseTreeObject:
     """Abstract class for the parse tree classes"""
 
-    token = None
+    def __init__(self):
+        self.token = None
+
+    def __repr__(self):
+        return str(id(self)) + ':' + self.__class__.__name__ + str(self.__dict__)
 
     def set_token(self, token):
         self.token = token
@@ -154,31 +159,39 @@ class Rest(ParseTreeObject):
 
 class BarTemporals(ParseTreeObject):
     """Keeping track of temporal stuff for the bar"""
-    time_fraction = Fraction('4/4')
     durations = None
+    divisions = 0
+
+    def __init__(self):
+        self.timemod = None
 
     def set_token(self, token):
         self.token = token
-        self.durations.append(token)
+        self.durations.append(self)
+
+    def set_timemod(self, token_type, ratio_token):
+        self.timemod = Fraction(ratio_token[:-1].replace('\\', '/'))
 
     def calculate_mxml_divisions(self):
-        ratios = [self.get_ratio(dur) for dur in self.durations]
-        lowest_ratio = quarter = Fraction('1/4')
-        for ratio in ratios:
-            if ratio < lowest_ratio:
-                lowest_ratio = ratio
-        if lowest_ratio < quarter:
-            return int(1 / (lowest_ratio * 4))
-        else:
-            return int(lowest_ratio * 4)
+        def convert_to_int(fraction):
+            while fraction.denominator > 1:
+                fraction *= 2
+            return int(fraction)
 
-    def get_ratio(self, duration):
+        ratios = [dur.get_ratio() for dur in self.durations]
+        division_fraction = 1 / (math.prod(set(ratios)) * 4)
+        BarTemporals.divisions = convert_to_int(division_fraction)
+
+    def get_ratio(self):
+        duration = self.token
         if '.' in duration:
             duration = duration.replace('.', '')
             ratio = Fraction('1/' + duration)
             ratio += ratio / 2
         else:
             ratio = Fraction('1/' + duration)
+        if self.timemod:
+            ratio *= 1 / self.timemod
         return ratio
 
 
@@ -193,14 +206,12 @@ class Duration(BarTemporals):
             32: '32nd'
         }
     def get_mxml_value(self):
-        divisions = self.calculate_mxml_divisions()
-        if divisions == 1 and '.' not in self.token:
-            duration = int(self.token)
-            duration_num = 4 / duration
-        else:
-            ratio = self.get_ratio(self.token)
-            duration_num = 4 * ratio * divisions
-        return str(duration_num)
+        if not self.divisions:
+            self.calculate_mxml_divisions()
+        divisions = self.divisions
+        ratio = self.get_ratio()
+        duration_num = 4 * ratio * divisions
+        return str(int(duration_num))
 
     def get_type(self):
         duration = int(self.token.replace('.', ''))
@@ -221,3 +232,33 @@ class Duration(BarTemporals):
 
     def modify_dot(self, text):
         self.token += '.'
+
+
+class TimeModificationStart(ParseTreeObject):
+    """Representing a time modification"""
+
+
+class TimeModificationEnd(ParseTreeObject):
+    """Representing a time modification"""
+
+    def get_actual_notes(self):
+        ratio = Fraction(self.token[:-1].replace('\\', '/'))
+        return str(ratio.numerator)
+
+    def get_normal_notes(self):
+        ratio = Fraction(self.token[:-1].replace('\\', '/'))
+        return str(ratio.denominator)
+
+
+class NotationStart(ParseTreeObject):
+    """Representing a notation start"""
+
+
+class NotationEnd(ParseTreeObject):
+    """Representing a notation end"""
+
+
+class Tuplet(ParseTreeObject):
+    """Representing a tuplet"""
+    def attr_type(self):
+        return 'start' if self.token == '[' else 'stop'
