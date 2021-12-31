@@ -175,7 +175,7 @@ class BarTemporals(ParseTreeObject):
     def calculate_mxml_divisions(self):
         def convert_to_int(fraction):
             while fraction.denominator > 1:
-                fraction *= 2
+                fraction *= fraction.denominator
             return int(fraction)
 
         ratios = [dur.get_ratio() for dur in self.durations]
