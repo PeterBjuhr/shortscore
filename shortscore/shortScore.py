@@ -195,7 +195,7 @@ class ShortScore():
             for num, bar in enumerate(self.score[part]):
                 bar_number = num + 1
                 if bar:
-                    self.mxml_exporter.export_bar(bar, bar_number)
+                    self.mxml_exporter.export_bar(self.score[self.glob][num], bar, bar_number)
                 else:
                     self.mxml_exporter.make_multi_rest(bar_number)
         self.mxml_exporter.write_to_file(xml_file)

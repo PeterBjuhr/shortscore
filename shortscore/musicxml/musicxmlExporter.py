@@ -53,15 +53,25 @@ class MusicXMLExporter():
         duration.calculate_mxml_divisions()
         return duration.divisions
 
-    def export_bar(self, bar, bar_number=1):
+    def export_bar(self, glob, bar, bar_number=1):
         self.bar_parent = ET.SubElement(self.part, 'measure')
         self.bar_parent.set('number', str(bar_number))
         attr = ET.SubElement(self.bar_parent, 'attributes')
         divs = ET.SubElement(attr, 'divisions')
         divisions = self.divisions = self.calc_divisions(bar)
         divs.text = str(divisions)
+        if glob:
+            self.create_time_node(attr, glob.get('m'))
         self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
         self.create_nodes_from_parser_objects(self.bar_parent)
+
+    def create_time_node(self, parent, timesign):
+        timenode = ET.SubElement(parent, 'time')
+        beats, beat_type = timesign.split('/')
+        beatsnode = ET.SubElement(timenode, 'beats')
+        beatsnode.text = str(beats)
+        beat_typenode = ET.SubElement(timenode, 'beat-type')
+        beat_typenode.text = str(beat_type)
 
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
