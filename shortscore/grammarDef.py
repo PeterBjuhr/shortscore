@@ -4,6 +4,7 @@ from pathlib import Path
 # classname (?=optional, !=derived) | from token | ends on token
 NOTEDEF = """
     NoteStart|
+    Chord¡|chord_start|chord_end
     Rest?|rest
     PitchStart?|pitchstep
     PitchStep?|pitchstep
@@ -23,6 +24,7 @@ NOTESTART = """
     pitchstep
     rest
     tuplet_ratio
+    chord_start
     """
 # Define which tokens could end a note
 NOTEEND = """
@@ -30,6 +32,7 @@ NOTEEND = """
     duration
     tuplet_end
     rest
+    chord_end
     """
 # Define which function to run on the newly created parser obj
 # classname | function name | parser attribute
@@ -54,6 +57,9 @@ class GrammarDef:
             classname = classname[:-1]
         elif classname.endswith('!'):
             optional = 'derived'
+            classname = classname[:-1]
+        elif classname.endswith('¡'):
+            optional = 'shadowed'
             classname = classname[:-1]
         else:
             optional = 'no'

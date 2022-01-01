@@ -40,12 +40,8 @@ class MusicXMLExporter():
                 if char.isupper():
                     return name[i:]
 
-        def do_replaces(name):
-            for remove in ['Lh', 'Rh', 'Solo']:
-                name = name.replace(remove, '')
-            return name
-
-        self.instrument_names = {k: do_replaces(remove_prefix(v)) for k, v in partdef.items()}
+        replaces = ['Lh', 'Rh', 'Solo']
+        self.instrument_names = {k: self.do_replaces(remove_prefix(v), replaces) for k, v in partdef.items()}
         self.midi_instruments = main()
 
     def setup_part(self, part, num):
@@ -66,10 +62,13 @@ class MusicXMLExporter():
         midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
         midi_channel.text = str(num)
         midi_program = ET.SubElement(midi_instrument, 'midi-program')
-        midi_program.text = str(self.midi_instruments.get(partname, '1'))
+        partmidi = self.do_replaces(partname, ['IV', 'I'])
+        midi_program.text = str(self.midi_instruments.get(partmidi, '1'))
 
-    def do_replaces(self, input_str):
-        for repl in self.replaces:
+    def do_replaces(self, input_str, replaces=None):
+        if not replaces:
+            replaces = self.replaces
+        for repl in replaces:
             input_str = input_str.replace(repl, '')
         return input_str
 
