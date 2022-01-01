@@ -177,14 +177,10 @@ class BarTemporals(ParseTreeObject):
         self.timemod = Fraction(ratio_token[:-1].replace('\\', '/'))
 
     def calculate_mxml_divisions(self):
-        def convert_to_int(fraction):
-            while fraction.denominator > 1:
-                fraction *= fraction.denominator
-            return int(fraction)
-
-        ratios = [dur.get_ratio() for dur in self.durations]
-        division_fraction = 1 / (math.prod(set(ratios)) * 4)
-        BarTemporals.divisions = convert_to_int(division_fraction)
+        ratios = set(dur.get_ratio() for dur in self.durations)
+        denominators = set(r.denominator for r in ratios)
+        lcm = math.prod(denominators) / math.gcd(*denominators)
+        BarTemporals.divisions = int(lcm)
 
     def get_ratio(self):
         duration = self.token
