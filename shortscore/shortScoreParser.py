@@ -42,17 +42,16 @@ class ShortScoreParser:
                 continue
             try:
                 token_type, token_str = self.find_token(note_tokens, grammar_obj.lexernames)
-                if grammar_obj.optional == 'derived':
+                if grammar_obj.optional == 'derived' or grammar_obj.optional == 'shadowed':
                     setattr(self, grammar_obj.classname.lower(), (token_type, token_str))
                     if grammar_obj.endtoken:
-                        self.endtokens.setdefault(grammar_obj.endtoken, []).append(grammar_obj.classname.lower())
-                for endtoken_attr in self.endtokens.get(token_type, []):
-                    if hasattr(self, endtoken_attr):
-                        delattr(self, endtoken_attr)
+                        self.endtokens.setdefault(grammar_obj.endtoken, set()).add(grammar_obj.classname.lower())
+                if grammar_obj.optional == 'shadowed':
+                    continue
             except TypeError:
                 if grammar_obj.optional == 'yes':
                     continue
-                elif grammar_obj.optional == 'derived':
+                elif grammar_obj.optional == 'derived' or grammar_obj.optional == 'shadowed':
                     if hasattr(self, grammar_obj.classname.lower()):
                         token_type, token_str = getattr(self, grammar_obj.classname.lower())
                     else:
@@ -65,6 +64,15 @@ class ShortScoreParser:
                 obj.set_token(token_str)
             self.check_obj_func(obj, note_tokens)
             yield obj
+        self.check_endtokens(note_tokens)
+
+    def check_endtokens(self, note_tokens):
+        for endtoken, attr_set in list(self.endtokens.items()):
+            if self.find_token(note_tokens, [endtoken]):
+                for endtoken_attr in attr_set:
+                    if hasattr(self, endtoken_attr):
+                        delattr(self, endtoken_attr)
+                del(self.endtokens[endtoken])
 
     def find_token(self, note_tokens, lexernames):
         for reqtoken in lexernames:

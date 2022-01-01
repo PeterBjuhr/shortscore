@@ -35,6 +35,10 @@ class NoteEnd(Note):
     """Representing the end of the note"""
 
 
+class Chord(ParseTreeObject):
+    """Representing a chord note"""
+
+
 class Pitch(ParseTreeObject):
     """Representing a pitch"""
 

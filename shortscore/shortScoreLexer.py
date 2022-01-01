@@ -8,9 +8,9 @@ class ShortScoreLexer:
     def __init__(self, alter_lang = 'default'):
         self._token_types_dict = {
             'notes': self._is_note,
+            'chord': self._is_chord,
             'rest': self._is_rest,
-            'tuplet_start': self._is_tuplet_start,
-            'tuplet_end': self._is_tuplet_end,
+            'tuplet': self._is_tuplet,
             'duration': self._is_duration
             }
         if alter_lang == 'dutch':
@@ -24,13 +24,18 @@ class ShortScoreLexer:
 
     def lex(self, bar_of_music):
         """Generate tuplets of type and string from bar of music"""
-        # trailing tuplet ratio is supported but more difficult to parse
-        bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
-        self.reader = ShortScoreReader(bar_of_music)
+        self.reader = ShortScoreReader(self.convert_from_alternative_syntax(bar_of_music))
         for char in self.reader.read_char():
             for token_type in self._token_types_dict:
                 for token in self._token_types_dict[token_type](char):
                     yield token
+
+    def convert_from_alternative_syntax(self, bar_of_music):
+        # trailing tuplet ratio is supported but more difficult to parse
+        bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
+        # Duration after chord is supported but after first note is recommended
+        bar_of_music = re.sub(r'<([a-g\',]+)([^>]+)>(\d+)', r'<\g<1>\g<3>\g<2>>', bar_of_music)
+        return bar_of_music
 
     def _is_note(self, char):
         if re.match(r'[a-g]', char):
@@ -52,11 +57,15 @@ class ShortScoreLexer:
         if char == 'r':
             yield ("rest", char)
 
-    def _is_tuplet_start(self, char):
+    def _is_chord(self, char):
+        if char == '<':
+            yield ("chord_start", char)
+        if char == '>':
+            yield ("chord_end", char)
+
+    def _is_tuplet(self, char):
         if char == '[':
             yield ("tuplet_start", char)
-
-    def _is_tuplet_end(self, char):
         if char == ']':
             yield ("tuplet_end", char)
 
