@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
@@ -150,4 +151,6 @@ class MusicXMLExporter():
         with open(filename, 'w') as file_obj:
             file_obj.write('<?xml version="1.0" encoding="UTF-8"?>')
             file_obj.write('<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
-            self.tree.write(file_obj, encoding='unicode')
+            rough_string = ET.tostring(self.root, 'utf-8')
+            reparsed = minidom.parseString(rough_string)
+            file_obj.write(reparsed.toprettyxml(indent="  "))
