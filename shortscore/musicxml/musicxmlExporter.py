@@ -149,8 +149,8 @@ class MusicXMLExporter():
 
     def write_to_file(self, filename):
         with open(filename, 'w') as file_obj:
-            file_obj.write('<?xml version="1.0" encoding="UTF-8"?>')
-            file_obj.write('<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
-            rough_string = ET.tostring(self.root, 'utf-8')
-            reparsed = minidom.parseString(rough_string)
+            decl = '<?xml version="1.0" encoding="UTF-8"?>'
+            doctype = '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">'
+            rough_string = ET.tostring(self.root, encoding='unicode')
+            reparsed = minidom.parseString(decl + doctype + rough_string)
             file_obj.write(reparsed.toprettyxml(indent="  "))

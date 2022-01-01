@@ -179,7 +179,10 @@ class BarTemporals(ParseTreeObject):
     def calculate_mxml_divisions(self):
         ratios = set(dur.get_ratio() for dur in self.durations)
         denominators = set(r.denominator for r in ratios)
-        lcm = math.prod(denominators) / math.gcd(*denominators)
+        if len(denominators) > 1:
+            lcm = math.prod(denominators) / math.gcd(*denominators)
+        else:
+            lcm = denominators.pop()
         BarTemporals.divisions = int(lcm)
 
     def get_ratio(self):
