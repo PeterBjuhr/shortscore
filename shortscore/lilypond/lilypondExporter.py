@@ -49,7 +49,16 @@ class LilypondExporter():
         return "\n".join(output)
 
     def shortscore_to_ly(self, text):
+        def do_barattrs(matches):
+            change_dict = dict(tuple(m.split(':')) for m in matches[1].split(','))
+            additions = []
+            clef = change_dict.get('c')
+            if clef:
+                additions.append(f'\clef {clef}')
+            return " ".join(additions)
+
         text = text.replace('-', '~')
+        text = re.sub(r'«([^»]+)»', do_barattrs, text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
         text = re.sub(r'([a-gis\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
         text = re.sub(r'\b([\w\'\,]+\d*\.*):gr', r"\\acciaccatura \g<1>", text)
