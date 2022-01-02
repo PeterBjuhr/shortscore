@@ -5,6 +5,7 @@ from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
 from shortscore.parseTreeClasses import Duration, TimeModificationStart, Tuplet
 
+from .cleftypes import cleftypes
 from .general_midi import main
 
 class MusicXMLExporter():
@@ -90,16 +91,31 @@ class MusicXMLExporter():
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
+            self.create_clef(attr, glob.get('c'))
         self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
         self.create_nodes_from_parser_objects(self.bar_parent)
 
-    def create_time_node(self, parent, timesign):
-        timenode = ET.SubElement(parent, 'time')
-        beats, beat_type = timesign.split('/')
-        beatsnode = ET.SubElement(timenode, 'beats')
-        beatsnode.text = str(beats)
-        beat_typenode = ET.SubElement(timenode, 'beat-type')
-        beat_typenode.text = str(beat_type)
+    def create_time_node(self, attrnode, timesign):
+        if timesign:
+            timenode = ET.SubElement(attrnode, 'time')
+            beats, beat_type = timesign.split('/')
+            beatsnode = ET.SubElement(timenode, 'beats')
+            beatsnode.text = str(beats)
+            beat_typenode = ET.SubElement(timenode, 'beat-type')
+            beat_typenode.text = str(beat_type)
+
+    def create_clef(self, attrnode, cleftype):
+        if cleftype:
+            clefnode = ET.SubElement(attrnode, 'clef')
+            sign, line, octave_change = cleftypes.get(cleftype)
+            signnode = ET.SubElement(clefnode, 'sign')
+            signnode.text = sign.upper()
+            if line:
+                linenode = ET.SubElement(clefnode, 'line')
+                linenode.text = str(line)
+            if octave_change:
+                ocnode = ET.SubElement(clefnode, 'clef-octave-change')
+                ocnode.text = str(octave_change)
 
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
