@@ -14,9 +14,10 @@ NOTEDEF = """
     Duration!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
-    NotationStart?|tuplet_start,tuplet_end
+    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end
+    Slur?|slur_start,slur_end
     Tuplet?|tuplet_start,tuplet_end
-    NotationEnd?|tuplet_start,tuplet_end
+    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end
     NoteEnd|
     """
 # Define which tokens could start a new note
@@ -25,6 +26,7 @@ NOTESTART = """
     rest
     tuplet_ratio
     chord_start
+    slur_start
     """
 # Define which tokens could end a note
 NOTEEND = """
@@ -33,6 +35,7 @@ NOTEEND = """
     tuplet_end
     rest
     chord_end
+    slur_end
     """
 
 # Define non-note elements

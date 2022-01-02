@@ -282,3 +282,9 @@ class Tuplet(ParseTreeObject):
     """Representing a tuplet"""
     def attr_type(self):
         return 'start' if self.token == '[' else 'stop'
+
+
+class Slur(ParseTreeObject):
+    """Representing a slur"""
+    def attr_type(self):
+        return 'start' if self.token == '(' else 'stop'

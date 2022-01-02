@@ -22,7 +22,8 @@ class MusicXMLExporter():
     replaces = ['Start', 'End']
 
     attributes = {
-            'Tuplet': ['type']
+            'Tuplet': ['type'],
+            'Slur': ['type']
         }
 
     add_ons = {
