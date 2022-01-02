@@ -10,6 +10,7 @@ class ShortScoreParser:
         grammar_def = GrammarDef()
         self.syntax_list = grammar_def.get_grammar_def()
         self.lexer_notestart, self.lexer_noteend = grammar_def.get_lexer_note_endpoints()
+        self.non_notes = grammar_def.get_non_notes()
         self.obj_func_gen = grammar_def.get_obj_functions
         self.endtokens = {}
 
@@ -29,10 +30,14 @@ class ShortScoreParser:
                     raise Exception('Wrong syntax: incomplete note!')
                 break
             token_type, _ = next_token
-            if token_type in self.lexer_notestart:
+            if token_type in self.non_notes or token_type in self.lexer_notestart:
                 if note_tokens and note_tokens[-1][0] in self.lexer_noteend:
                     yield from self.parse_note(note_tokens)
                     note_tokens = []
+            if token_type in self.non_notes:
+                for classname in self.non_notes.get(token_type):
+                    yield self.create_obj_from_lexer(next_token, classname)
+                continue
             note_tokens.append(next_token)
 
     def parse_note(self, note_tokens):
@@ -83,6 +88,14 @@ class ShortScoreParser:
     def create_obj_from_classname(self, classname):
         instance = globals().get(classname)
         return instance()
+
+    def create_obj_from_lexer(self, lexertoken, classname):
+        token_type, token_str = lexertoken
+        instance = globals().get(classname)
+        obj = instance()
+        if token_str:
+            obj.set_token(token_str)
+        return obj
 
     def check_obj_func(self, obj, note_tokens):
         for classname, func, attr in self.obj_func_gen():

@@ -15,7 +15,8 @@ class MusicXMLExporter():
             'pitchalter': 'alter',
             'rest': 'rest',
             'timemodification': 'time-modification',
-            'notation': 'notations'
+            'notation': 'notations',
+            'barattr': 'attributes'
         }
 
     replaces = ['Start', 'End']
@@ -26,7 +27,8 @@ class MusicXMLExporter():
 
     add_ons = {
             'Duration': ['type', 'dot'],
-            'TimeModificationEnd': ['actual_notes', 'normal_notes']
+            'TimeModificationEnd': ['actual_notes', 'normal_notes'],
+            'BarAttrEnd': ['clef']
         }
 
     def __init__(self, language='default'):
@@ -91,7 +93,6 @@ class MusicXMLExporter():
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
-            self.create_clef(attr, glob.get('c'))
         self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
         self.create_nodes_from_parser_objects(self.bar_parent)
 
@@ -145,7 +146,9 @@ class MusicXMLExporter():
             for add_on in self.add_ons[classname]:
                 extra_method = getattr(parser_object, 'get_' + add_on, None)
                 extra_value = extra_method()
-                if extra_value or extra_value is None:
+                if hasattr(self, 'create_' + add_on):
+                    getattr(self, 'create_' + add_on)(parent, extra_value)
+                elif extra_value or extra_value is None:
                     extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
                     extra_node.text = extra_value
 
