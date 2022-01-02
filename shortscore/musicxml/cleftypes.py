@@ -7,17 +7,13 @@ cleftypes = { # clef sign, staff line, octace change
         'treble8D': ('g', 2, -1),
         '𝄡': ('c', 3, None),
         'alto': ('c', 3, None),
-        'a': ('c', 3, None),
         '𝄢': ('f', 4, None),
         'bass': ('f', 4, None),
-        'c': ('f', 4, None),
         '𝄣': ('f', 4, 1),
         'bass8U': ('f', 4, 1),
         '𝄤': ('f', 4, -1),
         'bass8D': ('f', 4, -1),
-        'cb': ('f', 4, -1),
         '𝄥': ('percussion', None, None),
         'percussion': ('percussion', None, None),
-        'p': ('percussion', None, None),
         'tenor': ('c', 4, None)
     }

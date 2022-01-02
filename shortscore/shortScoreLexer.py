@@ -11,7 +11,8 @@ class ShortScoreLexer:
             'chord': self._is_chord,
             'rest': self._is_rest,
             'tuplet': self._is_tuplet,
-            'duration': self._is_duration
+            'duration': self._is_duration,
+            'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
             self.alter_regex = self.dutch_alter_regex
@@ -68,6 +69,10 @@ class ShortScoreLexer:
             yield ("tuplet_start", char)
         if char == ']':
             yield ("tuplet_end", char)
+
+    def _is_barattr(self, char):
+        if char == '«':
+            yield ("barattr", "".join(self.reader.read_while(use_re=r'[^»]')))
 
 
 class ShortScoreReader:

@@ -23,6 +23,20 @@ class ParseTreeObject:
         self.token = mxml_value
 
 
+class BarAttrStart(ParseTreeObject):
+    """Representing a bar attribute"""
+
+
+class BarAttrEnd(ParseTreeObject):
+    """Representing a bar attribute"""
+    def set_token(self, token):
+        self.token = token
+        self.lookup = dict(d.split(':') for d in token.split(','))
+
+    def get_clef(self):
+        return self.lookup.get('c')
+
+
 class Note(ParseTreeObject):
     """Representing a note"""
 

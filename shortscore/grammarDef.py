@@ -34,6 +34,13 @@ NOTEEND = """
     rest
     chord_end
     """
+
+# Define non-note elements
+NON_NOTES = """
+    BarAttrStart|barattr
+    BarAttrEnd|barattr
+    """
+
 # Define which function to run on the newly created parser obj
 # classname | function name | parser attribute
 OBJ_FUNC = """
@@ -73,6 +80,14 @@ class GrammarDef:
         starting= [n.strip() for n in NOTESTART.split() if n]
         ending = [n.strip() for n in NOTEEND.split() if n]
         return starting, ending
+
+    def get_non_notes(self):
+        non_notes = (nn for nn in NON_NOTES.split() if nn)
+        non_notes_dict = {}
+        for nn in non_notes:
+            classname, lexername = nn.split('|')
+            non_notes_dict.setdefault(lexername, []).append(classname)
+        return non_notes_dict
 
     def get_obj_functions(self):
         for obj_func in (o.strip() for o in OBJ_FUNC.split() if o):
