@@ -12,6 +12,7 @@ class ShortScoreLexer:
             'rest': self._is_rest,
             'tuplet': self._is_tuplet,
             'duration': self._is_duration,
+            'slur': self._is_slur,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -59,16 +60,19 @@ class ShortScoreLexer:
             yield ("rest", char)
 
     def _is_chord(self, char):
-        if char == '<':
-            yield ("chord_start", char)
-        if char == '>':
-            yield ("chord_end", char)
+        yield from self._is_start_end(char, 'chord', '<', '>')
 
     def _is_tuplet(self, char):
-        if char == '[':
-            yield ("tuplet_start", char)
-        if char == ']':
-            yield ("tuplet_end", char)
+        yield from self._is_start_end(char, 'tuplet', '[', ']')
+
+    def _is_slur(self, char):
+        yield from self._is_start_end(char, 'slur', '(', ')')
+
+    def _is_start_end(self, char, description, start_char, end_char):
+        if char == start_char:
+            yield (f"{description}_start", char)
+        if char == end_char:
+            yield (f"{description}_end", char)
 
     def _is_barattr(self, char):
         if char == '«':

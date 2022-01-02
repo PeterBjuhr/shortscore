@@ -1,4 +1,5 @@
 from fractions import Fraction
+from functools import reduce
 import math
 
 class ParseTreeObject:
@@ -193,7 +194,9 @@ class BarTemporals(ParseTreeObject):
     def calculate_mxml_divisions(self):
         ratios = set(dur.get_ratio() for dur in self.durations)
         denominators = set(r.denominator for r in ratios)
-        if len(denominators) > 1:
+        if len(denominators) > 2:
+            lcm = reduce(lambda x, y: math.gcd(x, y), denominators)
+        elif len(denominators) > 1:
             lcm = math.prod(denominators) / math.gcd(*denominators)
         else:
             lcm = denominators.pop()
@@ -279,3 +282,9 @@ class Tuplet(ParseTreeObject):
     """Representing a tuplet"""
     def attr_type(self):
         return 'start' if self.token == '[' else 'stop'
+
+
+class Slur(ParseTreeObject):
+    """Representing a slur"""
+    def attr_type(self):
+        return 'start' if self.token == '(' else 'stop'

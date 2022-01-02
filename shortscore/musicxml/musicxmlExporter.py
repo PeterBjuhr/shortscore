@@ -22,7 +22,8 @@ class MusicXMLExporter():
     replaces = ['Start', 'End']
 
     attributes = {
-            'Tuplet': ['type']
+            'Tuplet': ['type'],
+            'Slur': ['type']
         }
 
     add_ons = {
@@ -93,6 +94,7 @@ class MusicXMLExporter():
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
+            self.create_tempomark(glob.get('t'))
         self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
         self.create_nodes_from_parser_objects(self.bar_parent)
 
@@ -104,6 +106,24 @@ class MusicXMLExporter():
             beatsnode.text = str(beats)
             beat_typenode = ET.SubElement(timenode, 'beat-type')
             beat_typenode.text = str(beat_type)
+
+    def create_tempomark(self, tempo):
+        if tempo:
+            beat_unit_dot = False
+            beat_unit, per_minute = tempo.split('=')
+            if '.' in beat_unit:
+                beat_unit_dot = True
+                beat_unit = beat_unit.replace('.', '')
+            beat_unit = Duration.duration_names.get(beat_unit) or 'quarter'
+            direction = ET.SubElement(self.bar_parent, 'direction')
+            direction_type = ET.SubElement(direction, 'direction-type')
+            metronome = ET.SubElement(direction_type, 'metronome')
+            bunode = ET.SubElement(metronome, 'beat-unit')
+            bunode.text = beat_unit
+            if beat_unit_dot:
+                ET.SubElement(metronome, 'beat-unit-dot')
+            pmnode = ET.SubElement(metronome, 'per-minute')
+            pmnode.text = per_minute
 
     def create_clef(self, attrnode, cleftype):
         if cleftype:
