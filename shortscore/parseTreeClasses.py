@@ -315,3 +315,13 @@ class Grace(ParseTreeObject):
 
     def attr_slash(self):
         return 'yes'
+
+
+class Glissando(ParseTreeObject):
+    """Representing a glissando"""
+
+    def attr_line_type(self):
+        return 'wavy'
+
+    def attr_type(self):
+        return 'start' if self.token == '~' else 'stop'

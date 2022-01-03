@@ -26,7 +26,8 @@ class MusicXMLExporter():
             'Slur': ['type'],
             'Tie': ['type'],
             'Tied': ['type'],
-            'Grace': ['slash']
+            'Grace': ['slash'],
+            'Glissando': ['line_type', 'type']
         }
 
     add_ons = {
@@ -161,7 +162,7 @@ class MusicXMLExporter():
             if classname in self.attributes:
                 for attr in self.attributes[classname]:
                     attr_method = getattr(parser_object, 'attr_' + attr, None)
-                    node.set(attr, attr_method())
+                    node.set(attr.replace('_', '-'), attr_method())
             self.create_nodes_from_parser_objects(parent)
 
     def check_add_on(self, parser_object, classname, parent):
