@@ -233,11 +233,6 @@ class Duration(BarTemporals):
         duration_num = 4 * ratio * divisions
         return str(int(duration_num))
 
-    def get_type(self):
-        duration = int(self.token.replace('.', ''))
-        if duration in self.duration_names:
-            return self.duration_names[duration]
-
     def get_dot(self):
         dot = False
         if '.' in self.token:
@@ -252,6 +247,15 @@ class Duration(BarTemporals):
 
     def modify_dot(self, text):
         self.token += '.'
+
+
+class Type(ParseTreeObject):
+    """Representing a duration type"""
+
+    def get_mxml_value(self):
+        duration = int(self.token.replace('.', ''))
+        if duration in Duration.duration_names:
+            return Duration.duration_names[duration]
 
 
 class TimeModificationStart(ParseTreeObject):
@@ -288,3 +292,15 @@ class Slur(ParseTreeObject):
     """Representing a slur"""
     def attr_type(self):
         return 'start' if self.token == '(' else 'stop'
+
+
+class Tie(ParseTreeObject):
+    """Representing a tie"""
+    def attr_type(self):
+        return 'start' if self.token == '>' else 'stop'
+
+
+class Tied(ParseTreeObject):
+    """Representing a tie"""
+    def attr_type(self):
+        return 'start' if self.token == '>' else 'stop'
