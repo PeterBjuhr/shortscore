@@ -109,8 +109,9 @@ class LilypondImporter():
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'[\g<3>]:\g<1>\\\g<2>', text)
         text = re.sub(r'(\]:\d+\\\d+):\s', r'\g<1> ', text)
         text = re.sub(r'\\clef\s(\w+)\b', r'«c:\g<1>»', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>:gr', text)
-        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:gr', text)
+        text = re.sub(r'<([^>]+)>', r'{\g<1>}', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>µ', text)
+        text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
@@ -119,7 +120,7 @@ class LilypondImporter():
         text = text.replace('--', '__')
         text = re.sub(r'-(.)', r'_\g<1>', text)
         text = re.sub(r'\s+', r' ', text)
-        text = text.replace('~', '-')
+        text = text.replace('~', '> <')
         return text
 
     def handle_multibar_rests(self, partname, bar, barnr):

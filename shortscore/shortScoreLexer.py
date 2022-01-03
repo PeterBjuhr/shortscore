@@ -35,10 +35,16 @@ class ShortScoreLexer:
                     yield token
 
     def convert_from_alternative_syntax(self, bar_of_music):
+        def separate_expr(matches):
+            notes = matches[1]
+            expr = matches[2]
+            return " ".join(note + expr for note in notes.split())
+
         # trailing tuplet ratio is supported but more difficult to parse
         bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
         # Duration after chord is supported but after first note is recommended
         bar_of_music = re.sub(r'\{([a-g\',]+)([^>]+)\}(\d+)', r'{\g<1>\g<3>\g<2>}', bar_of_music)
+        bar_of_music = re.sub(r'\[([^\]]+)\]:(\w+)', separate_expr, bar_of_music)
         return bar_of_music
 
     def _is_note(self, char):
