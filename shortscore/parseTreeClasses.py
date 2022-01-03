@@ -284,23 +284,34 @@ class NotationEnd(ParseTreeObject):
 
 class Tuplet(ParseTreeObject):
     """Representing a tuplet"""
+
     def attr_type(self):
         return 'start' if self.token == '[' else 'stop'
 
 
 class Slur(ParseTreeObject):
     """Representing a slur"""
+
     def attr_type(self):
         return 'start' if self.token == '(' else 'stop'
 
 
 class Tie(ParseTreeObject):
     """Representing a tie"""
+
     def attr_type(self):
         return 'start' if self.token == '>' else 'stop'
 
 
 class Tied(ParseTreeObject):
     """Representing a tie"""
+
     def attr_type(self):
         return 'start' if self.token == '>' else 'stop'
+
+
+class Grace(ParseTreeObject):
+    """Representing a grace note"""
+
+    def attr_slash(self):
+        return 'yes'

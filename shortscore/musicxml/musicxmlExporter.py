@@ -25,7 +25,8 @@ class MusicXMLExporter():
             'Tuplet': ['type'],
             'Slur': ['type'],
             'Tie': ['type'],
-            'Tied': ['type']
+            'Tied': ['type'],
+            'Grace': ['slash']
         }
 
     add_ons = {
