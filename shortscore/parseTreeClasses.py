@@ -4,6 +4,7 @@ import math
 
 class ParseTreeObject:
     """Abstract class for the parse tree classes"""
+    add_onfuncs = []
 
     def __init__(self):
         self.token = None
@@ -30,6 +31,8 @@ class BarAttrStart(ParseTreeObject):
 
 class BarAttrEnd(ParseTreeObject):
     """Representing a bar attribute"""
+    add_onfuncs = ['clef']
+
     def set_token(self, token):
         self.token = token
         self.lookup = dict(d.split(':') for d in token.split(','))
@@ -225,6 +228,8 @@ class Duration(BarTemporals):
             16: '16th',
             32: '32nd'
         }
+    add_onfuncs = ['dot']
+
     def get_mxml_value(self):
         if not self.divisions:
             self.calculate_mxml_divisions()
@@ -264,6 +269,8 @@ class TimeModificationStart(ParseTreeObject):
 
 class TimeModificationEnd(ParseTreeObject):
     """Representing a time modification"""
+
+    add_onfuncs = ['actual_notes', 'normal_notes']
 
     def get_actual_notes(self):
         ratio = Fraction(self.token[:-1].replace('\\', '/'))
@@ -325,3 +332,26 @@ class Glissando(ParseTreeObject):
 
     def attr_type(self):
         return 'start' if self.token == '~' else 'stop'
+
+
+class ArticulationStart(ParseTreeObject):
+    """Representing an articulation"""
+
+
+class ArticulationEnd(ParseTreeObject):
+    """Representing an articulation"""
+
+    artic_dict = {
+        '·': 'staccato',
+        '>': 'accent',
+        '-': 'tenuto',
+        'u': 'unstress'
+    }
+
+    def set_token(self, token):
+        self.token = token
+        artic_name = self.artic_dict.get(token[1])
+        if artic_name:
+            setattr(self, 'get_' + artic_name, lambda: None)
+            self.add_onfuncs = []
+            self.add_onfuncs.append(artic_name)

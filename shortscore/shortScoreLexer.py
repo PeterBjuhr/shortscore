@@ -1,5 +1,7 @@
 import re
 
+from .parseTreeClasses import ArticulationEnd
+
 class ShortScoreLexer:
     """A lexer for the ShortScore musical notation"""
     default_alter_regex = r'[sfqt]'
@@ -16,6 +18,7 @@ class ShortScoreLexer:
             'tie': self._is_tie,
             'grace': self._is_grace,
             'gliss': self._is_gliss,
+            'articulation': self._is_articulation,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -86,6 +89,10 @@ class ShortScoreLexer:
 
     def _is_gliss(self, char):
         yield from self._is_start_end(char, 'gliss', '~', '·')
+
+    def _is_articulation(self, char):
+        if char == '-':
+            yield ("artic", char + "".join(self.reader.read_while(use_in=ArticulationEnd.artic_dict)))
 
     def _is_start_end(self, char, description, start_char, end_char):
         if char == start_char:
