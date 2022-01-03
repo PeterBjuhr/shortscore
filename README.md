@@ -36,6 +36,8 @@ lower octave: c,
 
 durations: 1 2 4 8 16 32
 
-chords: <c'4 e' g'> (also allowed alternative notation: <c' e' g'>4)
+chords: {c'4 e' g'} (also allowed alternative notation: {c' e' g'}4)
+
+ties: c'4> <c'8
 
 tuplets (simple triol 3 over 2): 3\2:[c'8 d' e'] (also allowed alternative notation: [c'8 d' e']:3\2)
