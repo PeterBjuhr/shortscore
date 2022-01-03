@@ -12,12 +12,15 @@ NOTEDEF = """
     Octave?|octave
     PitchEnd?|pitchstep
     Duration!|duration
+    Tie?|tie_start,tie_end
+    Type!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
-    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end
+    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end
     Slur?|slur_start,slur_end
+    Tied?|tie_start,tie_end
     Tuplet?|tuplet_start,tuplet_end
-    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end
+    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end
     NoteEnd|
     """
 # Define which tokens could start a new note
@@ -27,6 +30,7 @@ NOTESTART = """
     tuplet_ratio
     chord_start
     slur_start
+    tie_end
     """
 # Define which tokens could end a note
 NOTEEND = """
@@ -36,6 +40,7 @@ NOTEEND = """
     rest
     chord_end
     slur_end
+    tie_start
     """
 
 # Define non-note elements

@@ -23,11 +23,13 @@ class MusicXMLExporter():
 
     attributes = {
             'Tuplet': ['type'],
-            'Slur': ['type']
+            'Slur': ['type'],
+            'Tie': ['type'],
+            'Tied': ['type']
         }
 
     add_ons = {
-            'Duration': ['type', 'dot'],
+            'Duration': ['dot'],
             'TimeModificationEnd': ['actual_notes', 'normal_notes'],
             'BarAttrEnd': ['clef']
         }

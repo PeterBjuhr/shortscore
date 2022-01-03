@@ -13,6 +13,7 @@ class ShortScoreLexer:
             'tuplet': self._is_tuplet,
             'duration': self._is_duration,
             'slur': self._is_slur,
+            'tie': self._is_tie,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -36,7 +37,7 @@ class ShortScoreLexer:
         # trailing tuplet ratio is supported but more difficult to parse
         bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
         # Duration after chord is supported but after first note is recommended
-        bar_of_music = re.sub(r'<([a-g\',]+)([^>]+)>(\d+)', r'<\g<1>\g<3>\g<2>>', bar_of_music)
+        bar_of_music = re.sub(r'\{([a-g\',]+)([^>]+)\}(\d+)', r'{\g<1>\g<3>\g<2>}', bar_of_music)
         return bar_of_music
 
     def _is_note(self, char):
@@ -60,13 +61,16 @@ class ShortScoreLexer:
             yield ("rest", char)
 
     def _is_chord(self, char):
-        yield from self._is_start_end(char, 'chord', '<', '>')
+        yield from self._is_start_end(char, 'chord', '{', '}')
 
     def _is_tuplet(self, char):
         yield from self._is_start_end(char, 'tuplet', '[', ']')
 
     def _is_slur(self, char):
         yield from self._is_start_end(char, 'slur', '(', ')')
+
+    def _is_tie(self, char):
+        yield from self._is_start_end(char, 'tie', '>', '<')
 
     def _is_start_end(self, char, description, start_char, end_char):
         if char == start_char:
