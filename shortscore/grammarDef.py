@@ -17,11 +17,14 @@ NOTEDEF = """
     Type!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
-    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end
+    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic
+    ArticulationStart?|artic
+    ArticulationEnd?|artic
     Slur?|slur_start,slur_end
     Tied?|tie_start,tie_end
     Tuplet?|tuplet_start,tuplet_end
-    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end
+    Glissando?|gliss_start,gliss_end
+    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic
     NoteEnd|
     """
 # Define which tokens could start a new note
@@ -32,6 +35,7 @@ NOTESTART = """
     chord_start
     slur_start
     tie_end
+    gliss_end
     """
 # Define which tokens could end a note
 NOTEEND = """
@@ -43,6 +47,8 @@ NOTEEND = """
     slur_end
     tie_start
     grace
+    gliss_start
+    artic
     """
 
 # Define non-note elements

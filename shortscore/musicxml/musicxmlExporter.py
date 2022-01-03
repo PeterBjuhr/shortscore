@@ -16,6 +16,7 @@ class MusicXMLExporter():
             'rest': 'rest',
             'timemodification': 'time-modification',
             'notation': 'notations',
+            'articulation': 'articulations',
             'barattr': 'attributes'
         }
 
@@ -26,13 +27,8 @@ class MusicXMLExporter():
             'Slur': ['type'],
             'Tie': ['type'],
             'Tied': ['type'],
-            'Grace': ['slash']
-        }
-
-    add_ons = {
-            'Duration': ['dot'],
-            'TimeModificationEnd': ['actual_notes', 'normal_notes'],
-            'BarAttrEnd': ['clef']
+            'Grace': ['slash'],
+            'Glissando': ['line_type', 'type']
         }
 
     def __init__(self, language='default'):
@@ -149,7 +145,7 @@ class MusicXMLExporter():
             if element_name in self.naming:
                 element_name = self.naming.get(element_name)
             if 'End' in classname:
-                self.check_add_on(parser_object, classname, parent)
+                self.check_add_on(parser_object, parent)
                 return
             node = ET.SubElement(parent, element_name)
             if 'Start' in classname:
@@ -157,23 +153,22 @@ class MusicXMLExporter():
             value = parser_object.get_mxml_value()
             if value:
                 node.text = value
-            self.check_add_on(parser_object, classname, parent)
+            self.check_add_on(parser_object, parent)
             if classname in self.attributes:
                 for attr in self.attributes[classname]:
                     attr_method = getattr(parser_object, 'attr_' + attr, None)
-                    node.set(attr, attr_method())
+                    node.set(attr.replace('_', '-'), attr_method())
             self.create_nodes_from_parser_objects(parent)
 
-    def check_add_on(self, parser_object, classname, parent):
-        if classname in self.add_ons:
-            for add_on in self.add_ons[classname]:
-                extra_method = getattr(parser_object, 'get_' + add_on, None)
-                extra_value = extra_method()
-                if hasattr(self, 'create_' + add_on):
-                    getattr(self, 'create_' + add_on)(parent, extra_value)
-                elif extra_value or extra_value is None:
-                    extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
-                    extra_node.text = extra_value
+    def check_add_on(self, parser_object, parent):
+        for add_on in parser_object.add_onfuncs:
+            extra_method = getattr(parser_object, 'get_' + add_on, None)
+            extra_value = extra_method()
+            if hasattr(self, 'create_' + add_on):
+                getattr(self, 'create_' + add_on)(parent, extra_value)
+            elif extra_value or extra_value is None:
+                extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
+                extra_node.text = extra_value
 
     def make_multi_rest(self, bar_number):
         self.bar_parent = ET.SubElement(self.part, 'measure')
