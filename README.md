@@ -44,4 +44,4 @@ slurs: (c'4 d')
 
 grace notes: (c'µ16 d'4)
 
-tuplets (simple triol 3 over 2): 3\2:[c'8 d' e'] (also allowed alternative notation: [c'8 d' e']:3\2)
+tuplets (simple triplet, 3 over 2): 3\2:[c'8 d' e'] (also allowed alternative notation: [c'8 d' e']:3\2)
