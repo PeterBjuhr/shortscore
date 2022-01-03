@@ -4,6 +4,7 @@ from pathlib import Path
 # classname (?=optional, !=derived) | from token | ends on token
 NOTEDEF = """
     NoteStart|
+    Grace?|grace
     Chord¡|chord_start|chord_end
     Rest?|rest
     PitchStart?|pitchstep
@@ -41,6 +42,7 @@ NOTEEND = """
     chord_end
     slur_end
     tie_start
+    grace
     """
 
 # Define non-note elements
