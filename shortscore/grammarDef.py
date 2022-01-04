@@ -18,6 +18,7 @@ NOTEDEF = """
     UnPitchedEnd?|unpitched
     Duration!|duration
     Tie?|tie_start,tie_end
+    UnpitchedInstrument?|unpitched+unpitched_oct
     Type!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end

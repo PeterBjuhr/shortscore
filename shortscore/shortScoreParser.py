@@ -80,10 +80,24 @@ class ShortScoreParser:
                 del(self.endtokens[endtoken])
 
     def find_token(self, note_tokens, lexernames):
-        for reqtoken in lexernames:
+        def search(reqtoken, note_tokens):
             for name, token in note_tokens:
                 if reqtoken == name:
                     return name, token
+
+        for reqtoken in lexernames:
+            if '+' in reqtoken:
+                name_one, name_two = reqtoken.split('+')
+                try:
+                    name_one, token_one = search(name_one, note_tokens)
+                    name_two, token_two = search(name_two, note_tokens)
+                    return name_one, token_one + token_two
+                except TypeError:
+                    pass
+            else:
+                find_token = search(reqtoken, note_tokens)
+                if find_token:
+                    return find_token
 
     def create_obj_from_classname(self, classname):
         instance = globals().get(classname)

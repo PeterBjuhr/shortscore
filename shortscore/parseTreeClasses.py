@@ -190,7 +190,14 @@ class Octave(ParseTreeObject):
 
 class UnpitchedOctave(Octave):
     """Representing a display octave for an unpitched note"""
-    
+
+
+class UnpitchedInstrument(ParseTreeObject):
+    """Representing the instrument of an unpitched note"""
+
+    def attr_id(self):
+        return self.token
+
 
 class Rest(ParseTreeObject):
     """Representing a rest"""
