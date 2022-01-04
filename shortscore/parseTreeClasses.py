@@ -1,5 +1,4 @@
 from fractions import Fraction
-from functools import reduce
 import math
 
 class ParseTreeObject:
@@ -219,15 +218,9 @@ class BarTemporals(ParseTreeObject):
         self.timemod = Fraction(ratio_token[:-1].replace('\\', '/'))
 
     def calculate_mxml_divisions(self):
-        ratios = set(dur.get_ratio() for dur in self.durations)
+        ratios = set(dur.get_ratio() * 4 for dur in self.durations)
         denominators = set(r.denominator for r in ratios)
-        if len(denominators) > 2:
-            lcm = reduce(lambda x, y: math.gcd(x, y), denominators)
-        elif len(denominators) > 1:
-            lcm = math.prod(denominators) / math.gcd(*denominators)
-        else:
-            lcm = denominators.pop()
-        BarTemporals.divisions = int(lcm)
+        BarTemporals.divisions = int(math.prod(denominators))
 
     def get_ratio(self):
         duration = self.token
