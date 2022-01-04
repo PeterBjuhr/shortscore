@@ -13,6 +13,8 @@ class MusicXMLExporter():
     naming = {
             'pitchstep': 'step',
             'pitchalter': 'alter',
+            'unpitchedstep': 'display-step',
+            'unpitchedoctave': 'display-octave',
             'rest': 'rest',
             'timemodification': 'time-modification',
             'notation': 'notations',
@@ -37,37 +39,59 @@ class MusicXMLExporter():
         self.root = ET.Element("score-partwise")
         self.tree = ET.ElementTree(self.root)
         self.partlist = ET.SubElement(self.root, 'part-list')
+        self.num = 1
 
-    def set_partdef(self, partdef):
+    def set_partdef(self, partdef, percdef):
         def remove_prefix(name):
             for i, char in enumerate(name):
                 if char.isupper():
                     return name[i:]
 
         replaces = ['Lh', 'Rh', 'Solo']
-        self.instrument_names = {k: self.do_replaces(remove_prefix(v), replaces) for k, v in partdef.items()}
+        self.partnames = {k: self.do_replaces(remove_prefix(v), replaces) for k, v in partdef.items()}
+        self.instrument_names = {k: [(k, v, None, False)] for k, v in self.partnames.items()}
+        for key, additional_instruments in percdef.items():
+           self.instrument_names[key] = [t + (True,) for t in additional_instruments]
         self.midi_instruments = main()
 
-    def setup_part(self, part, num):
-        num += 1
-        partname = self.instrument_names.get(part)
+    def setup_part(self, part):
+        num = self.num
+        partname, instr_names = self.partnames.get(part), self.instrument_names.get(part)
         self.part = ET.SubElement(self.root, 'part')
         self.part.set('id', 'P' + str(num))
         score_part = ET.SubElement(self.partlist, 'score-part')
         score_part.set('id', 'P' + str(num))
         part_name = ET.SubElement(score_part, 'part-name')
         part_name.text = partname
+        for _, longname, _, _ in instr_names:
+            self.setup_score_instrument(score_part, longname)
+        self.num = num
+        for _, longname, _, is_percussion in instr_names:
+            self.setup_midi_instrument(score_part, longname, is_percussion)
+
+    def setup_score_instrument(self, score_part, instr_name):
+        num = self.num
         instrument = ET.SubElement(score_part, 'score-instrument')
         instrument.set('id', f'P{num}-I{num}')
         instrument_name = ET.SubElement(instrument, 'instrument-name')
-        instrument_name.text = partname
+        instrument_name.text = instr_name
+        self.num += 1
+
+    def setup_midi_instrument(self, score_part, instr_name, is_percussion=False):
+        num = self.num
         midi_instrument = ET.SubElement(score_part, 'midi-instrument')
         midi_instrument.set('id', f'P{num}-I{num}')
         midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
-        midi_channel.text = str(num)
+        midi_channel.text = "10" if is_percussion else str(num)
         midi_program = ET.SubElement(midi_instrument, 'midi-program')
-        partmidi = self.do_replaces(partname, ['IV', 'I'])
-        midi_program.text = str(self.midi_instruments.get(partmidi, '1'))
+        midiname = self.do_replaces(instr_name, ['IV', 'I'])
+        if is_percussion:
+            midi_program.text = "1"
+            midi_unpitched = ET.SubElement(midi_instrument, 'midi-unpitched')
+            midi_unpitched.text = str(self.midi_instruments.get(midiname, '35'))
+        else:
+            midi_program.text = str(self.midi_instruments.get(midiname, '1'))
+        self.num += 1
 
     def do_replaces(self, input_str, replaces=None):
         if not replaces:
@@ -129,7 +153,7 @@ class MusicXMLExporter():
             clefnode = ET.SubElement(attrnode, 'clef')
             sign, line, octave_change = cleftypes.get(cleftype)
             signnode = ET.SubElement(clefnode, 'sign')
-            signnode.text = sign.upper()
+            signnode.text = sign
             if line:
                 linenode = ET.SubElement(clefnode, 'line')
                 linenode.text = str(line)

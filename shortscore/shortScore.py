@@ -19,9 +19,10 @@ class ShortScore():
         self.parts = []
         if ssc_file:
             partdef, self.ssc_text = self.get_shortscore_from_file(ssc_file)
-            self.partdef = self.read_partdef(partdef)
+            self.partdef, self.percdef = self.read_partdef(partdef)
         else:
-            self.partdef = {}
+            self.partdef = self.percdef = {}
+        print(self.partdef, self.percdef)
         glob = 'glob'
         self.glob = glob
         self.init_score()
@@ -55,14 +56,24 @@ class ShortScore():
 
     def read_partdef(self, partdef, flipped=False):
         partdef_dict = {}
+        percdef_dict = {}
         for line in partdef.split("\n"):
             if line.strip():
                 partname, shortname = tuple(line.split("="))
+                try:
+                    shortname, percdef = shortname.split('>')
+                    perclist = [tuple(p.split('/')) for p in percdef.split(',')]
+                    if flipped:
+                        percdef_dict[partname.strip()] = perclist
+                    else:
+                        percdef_dict[shortname.strip()] = perclist
+                except ValueError:
+                    pass
                 if flipped:
                     partdef_dict[partname.strip()] = shortname.strip()
                 else:
                     partdef_dict[shortname.strip()] = partname.strip()
-        return partdef_dict
+        return partdef_dict, percdef_dict
 
     def explode_chords(self, music, nrofparts):
         parts = [''] * nrofparts
@@ -86,8 +97,8 @@ class ShortScore():
     def read_shortscore(self, shortscore_file):
         # Get scortcore
         partdef, ssc_str = self.get_shortscore_from_file(shortscore_file)
-        self.partdef = partdef_dict = self.read_partdef(partdef)
-        self.parts = partdef_dict.keys()
+        self.partdef, self.percdef = self.read_partdef(partdef)
+        self.parts = self.partdef.keys()
         # Read shortscore
         self.init_score()
         bars = ssc_str.split("|")
@@ -190,9 +201,9 @@ class ShortScore():
 
     def export_to_mxml(self, xml_file):
         """Export to MusicXML file"""
-        self.mxml_exporter.set_partdef(self.partdef)
-        for num, part in enumerate(self.parts):
-            self.mxml_exporter.setup_part(part, num)
+        self.mxml_exporter.set_partdef(self.partdef, self.percdef)
+        for part in self.parts:
+            self.mxml_exporter.setup_part(part)
             for num, bar in enumerate(self.score[part]):
                 bar_number = num + 1
                 if bar:

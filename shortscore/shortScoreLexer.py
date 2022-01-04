@@ -52,7 +52,10 @@ class ShortScoreLexer:
         return bar_of_music
 
     def _is_note(self, char):
-        if re.match(r'[a-g]', char):
+        if char == 'x':
+            yield ("unpitched", "".join(self.reader.read_while(use_re=r'[a-g]')))
+            yield ("unpitched_oct", "".join(self.reader.read_while(use_in = "',")))
+        elif re.match(r'[a-g]', char):
             yield ("pitchstep", char)
             alter = "".join(self.reader.read_while(use_re = self.alter_regex))
             if alter:
