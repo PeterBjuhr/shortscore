@@ -77,7 +77,7 @@ class MusicXMLExporter():
     def setup_score_instrument(self, score_part, instr_name, is_percussion):
         num = self.num
         instrument = ET.SubElement(score_part, 'score-instrument')
-        instrument_id = f'{P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
+        instrument_id = f'P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
         instrument.set('id', instrument_id)
         instrument_name = ET.SubElement(instrument, 'instrument-name')
         instrument_name.text = instr_name
@@ -86,7 +86,7 @@ class MusicXMLExporter():
     def setup_midi_instrument(self, score_part, instr_name, is_percussion):
         num = self.num
         midi_instrument = ET.SubElement(score_part, 'midi-instrument')
-        midi_instrument_id = f'{P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
+        midi_instrument_id = f'P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
         midi_instrument.set('id', midi_instrument_id)
         midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
         midi_channel.text = "10" if is_percussion else str(num)
@@ -146,6 +146,7 @@ class MusicXMLExporter():
                 beat_unit = beat_unit.replace('.', '')
             beat_unit = Duration.duration_names.get(beat_unit) or 'quarter'
             direction = ET.SubElement(self.bar_parent, 'direction')
+            direction.set('placement', 'above')
             direction_type = ET.SubElement(direction, 'direction-type')
             metronome = ET.SubElement(direction_type, 'metronome')
             bunode = ET.SubElement(metronome, 'beat-unit')
