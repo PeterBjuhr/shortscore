@@ -71,6 +71,14 @@ class PitchEnd(Pitch):
     """Representing the end of the pitch"""
 
 
+class UnPitchedStart(Pitch):
+    """"Representing the start of the unpitched note"""
+
+
+class UnPitchedEnd(Pitch):
+    """Representing the end of the unpitched note"""
+
+
 class PitchStep(Pitch):
     """Representing a pitch step"""
     def get_mxml_value(self):
@@ -78,6 +86,10 @@ class PitchStep(Pitch):
 
     def set_token_from_mxml(self, mxml_value):
         self.token = mxml_value.lower()
+
+
+class UnPitchedStep(PitchStep):
+    """Representing a display step for unpitched note"""
 
 
 class PitchAlter(Pitch):
@@ -174,6 +186,11 @@ class Octave(ParseTreeObject):
             self.token = "".join([","] * abs(small_c_diff))
         else: # == 0
             self.token = ''
+
+
+class UnpitchedOctave(Octave):
+    """Representing a display octave for an unpitched note"""
+    
 
 class Rest(ParseTreeObject):
     """Representing a rest"""

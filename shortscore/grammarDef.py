@@ -12,6 +12,10 @@ NOTEDEF = """
     PitchAlter?|pitchalter
     Octave?|octave
     PitchEnd?|pitchstep
+    UnPitchedStart?|unpitched
+    UnPitchedStep?|unpitched
+    UnpitchedOctave?|unpitched_oct
+    UnPitchedEnd?|unpitched
     Duration!|duration
     Tie?|tie_start,tie_end
     Type!|duration
@@ -30,6 +34,7 @@ NOTEDEF = """
 # Define which tokens could start a new note
 NOTESTART = """
     pitchstep
+    unpitched
     rest
     tuplet_ratio
     chord_start
@@ -40,6 +45,7 @@ NOTESTART = """
 # Define which tokens could end a note
 NOTEEND = """
     octave
+    unpitched_oct
     duration
     tuplet_end
     rest
