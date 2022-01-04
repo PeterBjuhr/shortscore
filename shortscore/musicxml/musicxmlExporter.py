@@ -15,6 +15,7 @@ class MusicXMLExporter():
             'pitchalter': 'alter',
             'unpitchedstep': 'display-step',
             'unpitchedoctave': 'display-octave',
+            'unpitchedinstrument': 'instrument',
             'rest': 'rest',
             'timemodification': 'time-modification',
             'notation': 'notations',
@@ -25,6 +26,7 @@ class MusicXMLExporter():
     replaces = ['Start', 'End']
 
     attributes = {
+            'UnpitchedInstrument': ['id'],
             'Tuplet': ['type'],
             'Slur': ['type'],
             'Tie': ['type'],
@@ -56,6 +58,7 @@ class MusicXMLExporter():
 
     def setup_part(self, part):
         num = self.num
+        self.current_percussion = {}
         partname, instr_names = self.partnames.get(part), self.instrument_names.get(part)
         self.part = ET.SubElement(self.root, 'part')
         self.part.set('id', 'P' + str(num))
@@ -63,24 +66,28 @@ class MusicXMLExporter():
         score_part.set('id', 'P' + str(num))
         part_name = ET.SubElement(score_part, 'part-name')
         part_name.text = partname
-        for _, longname, _, _ in instr_names:
-            self.setup_score_instrument(score_part, longname)
-        self.num = num
         for _, longname, _, is_percussion in instr_names:
+            self.setup_score_instrument(score_part, longname, is_percussion)
+        self.num = num
+        for display_note, longname, _, is_percussion in instr_names:
+            if is_percussion:
+                self.current_percussion[display_note] = f'P{self.num}-X{self.num}'
             self.setup_midi_instrument(score_part, longname, is_percussion)
 
-    def setup_score_instrument(self, score_part, instr_name):
+    def setup_score_instrument(self, score_part, instr_name, is_percussion):
         num = self.num
         instrument = ET.SubElement(score_part, 'score-instrument')
-        instrument.set('id', f'P{num}-I{num}')
+        instrument_id = f'{P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
+        instrument.set('id', instrument_id)
         instrument_name = ET.SubElement(instrument, 'instrument-name')
         instrument_name.text = instr_name
         self.num += 1
 
-    def setup_midi_instrument(self, score_part, instr_name, is_percussion=False):
+    def setup_midi_instrument(self, score_part, instr_name, is_percussion):
         num = self.num
         midi_instrument = ET.SubElement(score_part, 'midi-instrument')
-        midi_instrument.set('id', f'P{num}-I{num}')
+        midi_instrument_id = f'{P{num}-X{num}' if is_percussion else f'P{num}-I{num}'
+        midi_instrument.set('id', midi_instrument_id)
         midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
         midi_channel.text = "10" if is_percussion else str(num)
         midi_program = ET.SubElement(midi_instrument, 'midi-program')
@@ -161,6 +168,9 @@ class MusicXMLExporter():
                 ocnode = ET.SubElement(clefnode, 'clef-octave-change')
                 ocnode.text = str(octave_change)
 
+    def add_attr_id(self, note_value):
+        return self.current_percussion.get(note_value)
+
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:
@@ -181,7 +191,11 @@ class MusicXMLExporter():
             if classname in self.attributes:
                 for attr in self.attributes[classname]:
                     attr_method = getattr(parser_object, 'attr_' + attr, None)
-                    node.set(attr.replace('_', '-'), attr_method())
+                    attr_value = attr_method()
+                    if hasattr(self, 'add_attr_' + attr):
+                        attr_value = getattr(self, 'add_attr_' + attr)(attr_value)
+                    if attr_value:
+                        node.set(attr.replace('_', '-'), attr_value)
             self.create_nodes_from_parser_objects(parent)
 
     def check_add_on(self, parser_object, parent):
