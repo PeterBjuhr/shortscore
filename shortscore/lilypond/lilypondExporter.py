@@ -51,7 +51,6 @@ class LilypondExporter():
     def replace_perc_notes(self, barmusic, percussion_instr):
         for percdef in percussion_instr:
             display_pitch, _, ly_name = percdef
-            print(display_pitch, ly_name)
             barmusic = barmusic.replace('x' + display_pitch, ly_name)
         return barmusic
 

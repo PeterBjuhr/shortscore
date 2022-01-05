@@ -22,7 +22,6 @@ class ShortScore():
             self.partdef, self.percdef = self.read_partdef(partdef)
         else:
             self.partdef = self.percdef = {}
-        print(self.partdef, self.percdef)
         glob = 'glob'
         self.glob = glob
         self.init_score()
