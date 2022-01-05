@@ -15,6 +15,7 @@ class LilypondImporter():
         glob, parts = self.get_partnames_from_ly()
         self.parts = parts
         self.partdef = {}
+        self.percdef = {}
         self.ssc_score = {}
         if glob:
             self.glob = glob
@@ -104,10 +105,14 @@ class LilypondImporter():
             start, end = get_bracket_positions(text)
             return text[start + 1:end - 1]
 
+    def replace_perc_notes(self, barmusic, percussion_instr):
+        for percdef in percussion_instr:
+            display_pitch, _, ly_name = percdef
+            barmusic = barmusic.replace(ly_name, 'x' + display_pitch)
+        return barmusic
+
     def ly2shortscore(self, text):
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*(\d+)\s*\{([^\}]+)}', r'[\g<4>]:\g<1>\\\g<2>:\g<3>', text)
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'[\g<3>]:\g<1>\\\g<2>', text)
-        text = re.sub(r'(\]:\d+\\\d+):\s', r'\g<1> ', text)
+        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\clef\s(\w+)\b', r'«c:\g<1>»', text)
         text = re.sub(r'<([^>]+)>', r'{\g<1>}', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>µ', text)
@@ -175,6 +180,9 @@ class LilypondImporter():
         for b in part.split("|"):
             barnr = len(self.ssc_score[partname])
             b = self.handle_multibar_rests(partname, b, barnr)
+            percdef = self.percdef.get(partname)
+            if percdef:
+                b = self.replace_perc_notes(b, percdef)
             b = self.ly2shortscore(b).strip()
             if b:
                 self.ssc_score[partname].append(b)
@@ -217,4 +225,5 @@ class LilypondImporter():
         if not ssc.partdef:
             print("Warning! Please initiate schortscore from file")
         self.partdef = {value: key for key, value in ssc.partdef.items()}
+        self.percdef = ssc.percdef
         self.read_lyvars()

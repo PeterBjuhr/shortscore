@@ -118,7 +118,7 @@ class ShortScore():
                     continue
                 try:
                     parts, music = p.split("::")
-                except IndexError:
+                except ValueError:
                     print(p)
                 part_list = [p.strip() for p in parts.split(",")]
                 if parts.strip().startswith('<'):
