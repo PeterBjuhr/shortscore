@@ -121,9 +121,8 @@ class LilypondImporter():
         text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
-        text = re.sub(r'([a-gis\',])\((.+)\)', r'(\g<1> \g<2>)', text)
-        text = text.replace('--', '__')
-        text = re.sub(r'-(.)', r'_\g<1>', text)
+        text = re.sub(r'([a-gis\',]+\d*)\((.+)\)', r'(\g<1> \g<2>)', text)
+        text = text.replace('-.', '-·')
         text = re.sub(r'\s+', r' ', text)
         text = text.replace('~', '> <')
         return text
