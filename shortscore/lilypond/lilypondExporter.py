@@ -63,8 +63,9 @@ class LilypondExporter():
                 additions.append(f'\clef {clef}')
             return " ".join(additions)
 
-        text = re.sub(r'>\s*<', '~', text)
+        text = re.sub(r'>\s*<', r'~ ', text)
         text = re.sub(r'«([^»]+)»', do_barattrs, text)
+        text = re.sub(r'\{([^\}]+)\}', r"<\g<1>>", text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
         text = re.sub(r'(\d+)\\(\d+):\[([^\]]+)\]', r"\\tuplet \g<1>/\g<2> {\g<3>}", text)
         text = re.sub(r'([a-gis\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)

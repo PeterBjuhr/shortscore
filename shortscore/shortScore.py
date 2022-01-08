@@ -61,7 +61,7 @@ class ShortScore():
                 partname, shortname = tuple(line.split("="))
                 try:
                     shortname, percdef = shortname.split('>')
-                    perclist = [tuple(p.split('/')) for p in percdef.split(',')]
+                    perclist = [tuple(p.split('/')) for p in percdef.split('//')]
                     if flipped:
                         percdef_dict[partname.strip()] = perclist
                     else:
