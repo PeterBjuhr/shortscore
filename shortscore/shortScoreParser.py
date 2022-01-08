@@ -5,6 +5,8 @@ class ShortScoreParser:
     """
     Parsing of the tokens identified by the lexer, using the defined grammar.
     """
+    allowed_ahead_tokens = ['tie_end']
+
     def __init__(self, language = 'default'):
         self.language = language
         grammar_def = GrammarDef()
@@ -13,21 +15,26 @@ class ShortScoreParser:
         self.non_notes = grammar_def.get_non_notes()
         self.obj_func_gen = grammar_def.get_obj_functions
         self.endtokens = {}
+        self.ahead_tokens = []
 
     def init_bar(self):
         BarTemporals.durations = []
         Pitch.language = self.language
+        self.ahead_tokens = []
 
     def parse(self, shortscore_lexer_tokens):
+        note_tokens = self.ahead_tokens or []
         self.init_bar()
-        note_tokens = []
         while True:
             next_token = next(shortscore_lexer_tokens, None)
             if next_token is None:
-                if note_tokens and note_tokens[-1][0] in self.lexer_noteend:
+                last_lexer = note_tokens[-1][0]
+                if note_tokens and last_lexer in self.lexer_noteend:
                     yield from self.parse_note(note_tokens)
+                elif last_lexer in self.allowed_ahead_tokens:
+                    self.ahead_tokens.append(note_tokens[-1])
                 else:
-                    raise Exception('Wrong syntax: incomplete note!')
+                    raise Exception(f'Wrong syntax: incomplete note! {note_tokens}')
                 break
             token_type, _ = next_token
             if token_type in self.non_notes or token_type in self.lexer_notestart:
