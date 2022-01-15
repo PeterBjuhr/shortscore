@@ -13,11 +13,13 @@ class LilypondExporter():
         with open(self.lyfile) as r:
             text = r.read()
         pos = text.find(partname + ' =')
-        if pos:
+        if pos != -1:
             slice = text[pos:]
             start, end = get_bracket_positions(slice)
             slice = slice[:start + 1] + "\n" + new_content + "\n" + slice[end:]
             text = text[:pos] + slice
+        else:
+            print(f"LilyPondExporter: Warning! Can't find {partname} in ly-file!")
         with open(self.lyfile, "w") as w:
             w.write(text)
 
