@@ -22,7 +22,6 @@ class ShortScore():
             self.partdef, self.percdef = self.read_partdef(partdef)
         else:
             self.partdef = self.percdef = {}
-        print(self.partdef, self.percdef)
         glob = 'glob'
         self.glob = glob
         self.init_score()
@@ -62,7 +61,7 @@ class ShortScore():
                 partname, shortname = tuple(line.split("="))
                 try:
                     shortname, percdef = shortname.split('>')
-                    perclist = [tuple(p.split('/')) for p in percdef.split(',')]
+                    perclist = [tuple(p.split('/')) for p in percdef.split('//')]
                     if flipped:
                         percdef_dict[partname.strip()] = perclist
                     else:
@@ -118,7 +117,7 @@ class ShortScore():
                     continue
                 try:
                     parts, music = p.split("::")
-                except IndexError:
+                except ValueError:
                     print(p)
                 part_list = [p.strip() for p in parts.split(",")]
                 if parts.strip().startswith('<'):

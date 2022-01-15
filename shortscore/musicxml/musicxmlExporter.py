@@ -144,7 +144,7 @@ class MusicXMLExporter():
             if '.' in beat_unit:
                 beat_unit_dot = True
                 beat_unit = beat_unit.replace('.', '')
-            beat_unit = Duration.duration_names.get(beat_unit) or 'quarter'
+            beat_unit = Duration.duration_names.get(int(beat_unit)) or 'quarter'
             direction = ET.SubElement(self.bar_parent, 'direction')
             direction.set('placement', 'above')
             direction_type = ET.SubElement(direction, 'direction-type')
