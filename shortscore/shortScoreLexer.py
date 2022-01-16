@@ -65,7 +65,7 @@ class ShortScoreLexer:
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
             all_chars = char + "".join(self.reader.read_while(use_re = r'[1-9\.\\:]'))
-            if ':' in all_chars:
+            if '\\' in all_chars and ':' in all_chars:
                 yield ("tuplet_ratio", all_chars)
             else:
                 yield ("duration", all_chars)
