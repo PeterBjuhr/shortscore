@@ -28,12 +28,12 @@ class ShortScoreParser:
         while True:
             next_token = next(shortscore_lexer_tokens, None)
             if next_token is None:
-                last_lexer = note_tokens[-1][0]
+                last_lexer = note_tokens[-1][0] if note_tokens else None
                 if note_tokens and last_lexer in self.lexer_noteend:
                     yield from self.parse_note(note_tokens)
                 elif last_lexer in self.allowed_ahead_tokens:
                     self.ahead_tokens.append(note_tokens[-1])
-                else:
+                elif note_tokens:
                     raise Exception(f'Wrong syntax: incomplete note! {note_tokens}')
                 break
             token_type, _ = next_token

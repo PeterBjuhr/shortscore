@@ -137,25 +137,6 @@ class MusicXMLExporter():
             beat_typenode = ET.SubElement(timenode, 'beat-type')
             beat_typenode.text = str(beat_type)
 
-    def create_tempomark(self, tempo):
-        if tempo:
-            beat_unit_dot = False
-            beat_unit, per_minute = tempo.split('=')
-            if '.' in beat_unit:
-                beat_unit_dot = True
-                beat_unit = beat_unit.replace('.', '')
-            beat_unit = Duration.duration_names.get(int(beat_unit)) or 'quarter'
-            direction = ET.SubElement(self.bar_parent, 'direction')
-            direction.set('placement', 'above')
-            direction_type = ET.SubElement(direction, 'direction-type')
-            metronome = ET.SubElement(direction_type, 'metronome')
-            bunode = ET.SubElement(metronome, 'beat-unit')
-            bunode.text = beat_unit
-            if beat_unit_dot:
-                ET.SubElement(metronome, 'beat-unit-dot')
-            pmnode = ET.SubElement(metronome, 'per-minute')
-            pmnode.text = per_minute
-
     def create_clef(self, attrnode, cleftype):
         if cleftype:
             clefnode = ET.SubElement(attrnode, 'clef')
@@ -171,6 +152,35 @@ class MusicXMLExporter():
 
     def add_attr_id(self, note_value):
         return self.current_percussion.get(note_value)
+
+    def create_direction(self, placement='above'):
+        direction = ET.SubElement(self.bar_parent, 'direction')
+        direction.set('placement', placement)
+        direction_type = ET.SubElement(direction, 'direction-type')
+        return direction_type
+
+    def create_tempomark(self, tempo):
+        if tempo:
+            beat_unit_dot = False
+            beat_unit, per_minute = tempo.split('=')
+            if '.' in beat_unit:
+                beat_unit_dot = True
+                beat_unit = beat_unit.replace('.', '')
+            beat_unit = Duration.duration_names.get(int(beat_unit)) or 'quarter'
+            direction_type = self.create_direction()
+            metronome = ET.SubElement(direction_type, 'metronome')
+            bunode = ET.SubElement(metronome, 'beat-unit')
+            bunode.text = beat_unit
+            if beat_unit_dot:
+                ET.SubElement(metronome, 'beat-unit-dot')
+            pmnode = ET.SubElement(metronome, 'per-minute')
+            pmnode.text = per_minute
+
+    def create_dynamics(self, parent, dynamic):
+        if dynamic:
+            direction_type = self.create_direction()
+            dynamic_node = ET.SubElement(direction_type, 'dynamics')
+            ET.SubElement(dynamic_node, dynamic)
 
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)

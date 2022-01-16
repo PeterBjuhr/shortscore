@@ -114,11 +114,11 @@ class LilypondImporter():
     def ly2shortscore(self, text):
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\clef\s(\w+)\b', r'«c:\g<1>»', text)
+        text = re.sub(r'\\([mpfsz]+)\b', r'«d:\g<1>»', text)
         text = re.sub(r'<([^>]+)>', r'{\g<1>}', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>µ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
-        text = re.sub(r'\\instrumentSwitch\s*"(\w+)"\s*([\w\.\',]+)\b', r'\g<2>:chi:\g<1>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         text = re.sub(r'([a-gis\',]+\d*)\((.+)\)', r'(\g<1> \g<2>)', text)
@@ -138,6 +138,7 @@ class LilypondImporter():
             return product
 
         words = bar.split()
+        music_only = []
         for i, w in enumerate(words):
             if 'R' in w:
                 r = 1
@@ -154,7 +155,7 @@ class LilypondImporter():
                         w = w.replace(unit, '')
                         mults = w.replace('*', '')
                     else:
-                        u, mults = w.split('*')
+                        u, *mults = w.split('*')
                     r = multiply_list(mults) or 1
                     if u != unit:
                         if '*' in unit:
@@ -172,8 +173,9 @@ class LilypondImporter():
                             u = Fraction(1, int(u))
                         r = int((u / unit) * r)
                 self.ssc_score[partname] += [''] * r
-                del words[i]
-        return " ".join(words)
+            else:
+                music_only.append(w)
+        return " ".join(music_only)
 
     def parse_lypart(self, partname, part):
         for b in part.split("|"):
