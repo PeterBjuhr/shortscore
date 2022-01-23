@@ -354,6 +354,10 @@ class Glissando(ParseTreeObject):
         return 'start' if self.token == '~' else 'stop'
 
 
+class Fermata(ParseTreeObject):
+    """Representing a fermata"""
+
+
 class ArticulationStart(ParseTreeObject):
     """Representing an articulation"""
 

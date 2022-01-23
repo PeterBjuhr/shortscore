@@ -18,6 +18,7 @@ class ShortScoreLexer:
             'tie': self._is_tie,
             'grace': self._is_grace,
             'gliss': self._is_gliss,
+            'fermata': self._is_fermata,
             'articulation': self._is_articulation,
             'barattr': self._is_barattr
             }
@@ -92,6 +93,10 @@ class ShortScoreLexer:
 
     def _is_gliss(self, char):
         yield from self._is_start_end(char, 'gliss', '~', '·')
+
+    def _is_fermata(self, char):
+        if char == '𝄐':
+            yield ("fermata", char)
 
     def _is_articulation(self, char):
         if char == '-':
