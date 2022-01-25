@@ -177,8 +177,20 @@ class MusicXMLExporter():
             pmnode.text = per_minute
 
     def create_dynamics(self, parent, dynamic):
-        if dynamic:
-            direction_type = self.create_direction()
+        if dynamic == '<':
+            direction_type = self.create_direction('below')
+            crescendo = ET.SubElement(direction_type, 'wedge')
+            crescendo.set('type', 'crescendo')
+        elif dynamic == '>':
+            direction_type = self.create_direction('below')
+            crescendo = ET.SubElement(direction_type, 'wedge')
+            crescendo.set('type', 'diminuendo')
+        elif dynamic == '!':
+            direction_type = self.create_direction('below')
+            crescendo = ET.SubElement(direction_type, 'wedge')
+            crescendo.set('type', 'stop')
+        elif dynamic:
+            direction_type = self.create_direction('below')
             dynamic_node = ET.SubElement(direction_type, 'dynamics')
             ET.SubElement(dynamic_node, dynamic)
 
