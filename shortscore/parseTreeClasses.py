@@ -30,7 +30,7 @@ class BarAttrStart(ParseTreeObject):
 
 class BarAttrEnd(ParseTreeObject):
     """Representing a bar attribute"""
-    add_onfuncs = ['clef', 'dynamics']
+    add_onfuncs = ['clef', 'dynamics', 'words']
 
     def set_token(self, token):
         self.token = token
@@ -41,6 +41,9 @@ class BarAttrEnd(ParseTreeObject):
 
     def get_dynamics(self):
         return self.lookup.get('d')
+
+    def get_words(self):
+        return self.lookup.get('w')
 
 
 class Note(ParseTreeObject):
