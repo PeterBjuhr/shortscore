@@ -182,6 +182,12 @@ class MusicXMLExporter():
             dynamic_node = ET.SubElement(direction_type, 'dynamics')
             ET.SubElement(dynamic_node, dynamic)
 
+    def create_words(self, parent, text):
+        if text:
+            direction_type = self.create_direction()
+            text_node = ET.SubElement(direction_type, 'words')
+            text_node.text = text
+
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:
