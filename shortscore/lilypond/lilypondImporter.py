@@ -107,19 +107,26 @@ class LilypondImporter():
 
     def replace_perc_notes(self, barmusic, percussion_instr):
         for percdef in percussion_instr:
-            display_pitch, _, ly_name = percdef
-            barmusic = barmusic.replace(ly_name, 'x' + display_pitch)
+            try:
+                display_pitch, _, ly_name = percdef
+                barmusic = barmusic.replace(ly_name, 'x' + display_pitch)
+            except ValueError:
+                print(f"Warning! Missing percussion definition when importing from {self.lyfile}")
         return barmusic
 
     def ly2shortscore(self, text):
+        text = re.sub(r'~\s*}', r'}~', text)
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\clef\s(\w+)\b', r'«c:\g<1>»', text)
-        text = re.sub(r'\\([mpfsz]+)\b', r'«d:\g<1>»', text)
+        text = re.sub(r'\\([mpfsz<>!]+)', r'«d:\g<1>»', text)
+        text = re.sub(r'\^"([^"]+)"', r'«w:\g<1>»', text)
+        text = re.sub(r'\\instrumentSwitch\s"([^"]+)"', r'«w:\g<1>»', text)
         text = re.sub(r'<([^>]+)>', r'{\g<1>}', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*(\w+\d*\.*)', r'\g<1>µ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
+        text = re.sub(r'\\fermata\b', r'𝄐', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         text = re.sub(r'([a-gis\',]+\d*)\((.+)\)', r'(\g<1> \g<2>)', text)
         text = text.replace('-.', '-·')
