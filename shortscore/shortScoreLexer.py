@@ -1,6 +1,6 @@
 import re
 
-from .parseTreeClasses import ArticulationEnd
+from .parseTreeClasses import ArticulationEnd, TechnicalEnd
 
 class ShortScoreLexer:
     """A lexer for the ShortScore musical notation"""
@@ -20,6 +20,7 @@ class ShortScoreLexer:
             'gliss': self._is_gliss,
             'fermata': self._is_fermata,
             'articulation': self._is_articulation,
+            'technical': self._is_technical,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -48,7 +49,7 @@ class ShortScoreLexer:
         # trailing tuplet ratio is supported but more difficult to parse
         bar_of_music = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+)', r'\g<2>\\\g<3>:[\g<1>]', bar_of_music)
         # Duration after chord is supported but after first note is recommended
-        bar_of_music = re.sub(r'\{([a-g\',]+)([^>]+)\}(\d+)', r'{\g<1>\g<3>\g<2>}', bar_of_music)
+        bar_of_music = re.sub(r'\{([a-g\',]+)([^>]+)\}(\d+\.*)', r'{\g<1>\g<3>\g<2>}', bar_of_music)
         bar_of_music = re.sub(r'\[([^\]]+)\]:(\w+)', separate_expr, bar_of_music)
         return bar_of_music
 
@@ -101,6 +102,10 @@ class ShortScoreLexer:
     def _is_articulation(self, char):
         if char == '-':
             yield ("artic", char + "".join(self.reader.read_while(use_in=ArticulationEnd.artic_dict)))
+
+    def _is_technical(self, char):
+        if char == '×':
+            yield ("tech", char + "".join(self.reader.read_while(use_in=TechnicalEnd.tech_dict)))
 
     def _is_start_end(self, char, description, start_char, end_char):
         if char == start_char:

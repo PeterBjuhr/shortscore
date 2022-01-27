@@ -63,6 +63,12 @@ class LilypondExporter():
             clef = change_dict.get('c')
             if clef:
                 additions.append(f'\clef {clef}')
+            dynamic = change_dict.get('d')
+            if dynamic:
+                additions.append(f'\{dynamic}')
+            word = change_dict.get('w')
+            if word:
+                additions.append(f'^"{word}"')
             return " ".join(additions)
 
         text = re.sub(r'>\s*<', r'~ ', text)
@@ -75,8 +81,9 @@ class LilypondExporter():
         text = re.sub(r'\[([^\]]+)\]:µ', r"\\acciaccatura {\g<1>}", text)
         text = text.replace('-·', '-.')
         text = re.sub(r':(\D+)\b', r"\\\g<1>", text)
-        text = re.sub(r'.\)\b', r"\\\fermata", text)
-        text = re.sub(r'\b([\w\.\',]+)\s*:chi:(\w+)\b', r'\\instrumentSwitch "\g<2>" \g<1>', text)
+        text = re.sub(r'𝄐', r"\\fermata", text)
+        text = re.sub(r'×Ħ', r"\\downbow", text)
+        text = re.sub(r'×V', r"\\upbow", text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)
         text = re.sub(r'\(([a-gis\',<]+\d*\.*)', r'\g<1>(', text)
         text = re.sub(r' +', ' ', text)

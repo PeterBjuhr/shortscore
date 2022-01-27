@@ -112,6 +112,8 @@ class MusicXMLExporter():
         for obj in self.ssc_parser.parse(self.ssc_lexer.lex(bar)):
             if isinstance(obj, Duration):
                 duration = obj
+        if not duration:
+            raise Exception(f"Something went wrong! {bar}")
         duration.calculate_mxml_divisions()
         return duration.divisions
 

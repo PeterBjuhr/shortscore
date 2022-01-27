@@ -22,15 +22,17 @@ NOTEDEF = """
     Type!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
-    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,fermata
+    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,tech,fermata
     ArticulationStart?|artic
     ArticulationEnd?|artic
+    TechnicalStart?|tech
+    TechnicalEnd?|tech
     Slur?|slur_start,slur_end
     Tied?|tie_start,tie_end
     Tuplet?|tuplet_start,tuplet_end
     Glissando?|gliss_start,gliss_end
     Fermata?|fermata
-    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,fermata
+    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,tech,fermata
     NoteEnd|
     """
 # Define which tokens could start a new note
@@ -57,6 +59,7 @@ NOTEEND = """
     grace
     gliss_start
     artic
+    tech
     fermata
     """
 
