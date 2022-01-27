@@ -382,3 +382,24 @@ class ArticulationEnd(ParseTreeObject):
             setattr(self, 'get_' + artic_name, lambda: None)
             self.add_onfuncs = []
             self.add_onfuncs.append(artic_name)
+
+
+class TechnicalStart(ParseTreeObject):
+    """Representing a technical notation"""
+
+
+class TechnicalEnd(ParseTreeObject):
+    """Representing a technical notation"""
+
+    tech_dict = {
+        'Ħ': 'down-bow',
+        'V': 'up-bow',
+    }
+
+    def set_token(self, token):
+        self.token = token
+        tech_name = self.tech_dict.get(token[1])
+        if tech_name:
+            setattr(self, 'get_' + tech_name, lambda: None)
+            self.add_onfuncs = []
+            self.add_onfuncs.append(tech_name)

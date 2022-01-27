@@ -1,6 +1,6 @@
 import re
 
-from .parseTreeClasses import ArticulationEnd
+from .parseTreeClasses import ArticulationEnd, TechnicalEnd
 
 class ShortScoreLexer:
     """A lexer for the ShortScore musical notation"""
@@ -20,6 +20,7 @@ class ShortScoreLexer:
             'gliss': self._is_gliss,
             'fermata': self._is_fermata,
             'articulation': self._is_articulation,
+            'technical': self._is_technical,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -101,6 +102,10 @@ class ShortScoreLexer:
     def _is_articulation(self, char):
         if char == '-':
             yield ("artic", char + "".join(self.reader.read_while(use_in=ArticulationEnd.artic_dict)))
+
+    def _is_technical(self, char):
+        if char == '×':
+            yield ("tech", char + "".join(self.reader.read_while(use_in=TechnicalEnd.tech_dict)))
 
     def _is_start_end(self, char, description, start_char, end_char):
         if char == start_char:
