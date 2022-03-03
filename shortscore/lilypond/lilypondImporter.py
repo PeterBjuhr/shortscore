@@ -91,7 +91,7 @@ class LilypondImporter():
                     if glob_dict:
                         glob_dict['u'] = unit
                         self.ssc_score['glob'].append(glob_dict)
-                        scheme_dict.update(glob_dict)
+                        scheme_dict = dict(scheme_dict, **glob_dict)
                         glob_dict = {}
                         mult -= 1
                     self.ssc_score['glob'] += [''] * mult
