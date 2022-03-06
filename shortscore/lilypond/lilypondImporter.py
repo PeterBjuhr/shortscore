@@ -142,45 +142,17 @@ class LilypondImporter():
             for i in multlist:
                 if i:
                     product *= int(i)
-                else:
-                    product *= 1
             return product
 
         words = bar.split()
         music_only = []
         for i, w in enumerate(words):
             if 'R' in w:
-                r = 1
-                if barnr < len(self.lyscheme):
-                    glob_dict = self.lyscheme[barnr]
-                else:
-                    glob_dict = self.lyscheme[-1]
-                unit = glob_dict['u']
-                timesign = glob_dict['m']
                 w = w.replace('R', '')
-                if w != unit and '*' in w:
-                    if unit in w:
-                        u = unit
-                        w = w.replace(unit, '')
-                        mults = w.replace('*', '')
-                    else:
-                        u, *mults = w.split('*')
-                    r = multiply_list(mults) or 1
-                    if u != unit:
-                        if '*' in unit:
-                            multiplicand, multiplier = unit.split('*')
-                            unit = Fraction(1, int(multiplicand)) * int(multiplier)
-                        elif '.' in unit:
-                            unit = unit.replace('.', '')
-                            unit = Fraction(1, int(unit)) * Fraction(3, 2)
-                        else:
-                            unit = Fraction(1, int(unit))
-                        if '.' in u:
-                            u = u.replace('.', '')
-                            u = Fraction(1, int(u)) * Fraction(3, 2)
-                        else:
-                            u = Fraction(1, int(u))
-                        r = int((u / unit) * r)
+                u, *mults = w.split('*')
+                if int(u.replace('.', '')) > 4:
+                    mults = mults[1:]
+                r = multiply_list(mults) or 1
                 self.ssc_score[partname] += [''] * r
             else:
                 music_only.append(w)
