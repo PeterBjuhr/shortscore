@@ -84,6 +84,8 @@ class LilypondExporter():
         text = re.sub(r'𝄐', r"\\fermata", text)
         text = re.sub(r'×Ħ', r"\\downbow", text)
         text = re.sub(r'×V', r"\\upbow", text)
+        text = re.sub(r'_t', r"\\trill", text)
+        text = re.sub(r'_ł', r":32", text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)
         text = re.sub(r'\(([a-gis\',<]+\d*\.*)', r'\g<1>(', text)
         text = re.sub(r' +', ' ', text)

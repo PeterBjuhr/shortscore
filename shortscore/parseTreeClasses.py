@@ -384,6 +384,26 @@ class ArticulationEnd(ParseTreeObject):
             self.add_onfuncs.append(artic_name)
 
 
+class OrnamentStart(ParseTreeObject):
+    """Representing an ornament"""
+
+
+class OrnamentEnd(ParseTreeObject):
+    """Representing an ornament"""
+
+    ornament_dict = {
+        't': ('trill-mark', None),
+        'ł': ('tremolo', '3')
+    }
+
+    def set_token(self, token):
+        self.token = token
+        ornament_name, value = self.ornament_dict.get(token[1])
+        setattr(self, 'get_' + ornament_name, lambda: value)
+        self.add_onfuncs = []
+        self.add_onfuncs.append(ornament_name)
+
+
 class TechnicalStart(ParseTreeObject):
     """Representing a technical notation"""
 

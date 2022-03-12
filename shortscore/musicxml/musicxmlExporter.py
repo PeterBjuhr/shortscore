@@ -20,6 +20,7 @@ class MusicXMLExporter():
             'timemodification': 'time-modification',
             'notation': 'notations',
             'articulation': 'articulations',
+            'ornament': 'ornaments',
             'barattr': 'attributes'
         }
 
