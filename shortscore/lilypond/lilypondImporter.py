@@ -129,6 +129,8 @@ class LilypondImporter():
         text = re.sub(r'\\fermata\b', r'𝄐', text)
         text = re.sub(r'\\downbow\b', r'×Ħ', text)
         text = re.sub(r'\\upbow\b', r'×V', text)
+        text = re.sub(r'\\trill\b', r'_t', text)
+        text = re.sub(r':32\b', r'_ł', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         text = re.sub(r'([a-gis\',]+\d*)\((.+)\)', r'(\g<1> \g<2>)', text)
         text = text.replace('-.', '-·')
