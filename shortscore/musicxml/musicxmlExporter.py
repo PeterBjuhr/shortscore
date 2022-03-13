@@ -240,10 +240,12 @@ class MusicXMLExporter():
                 extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
                 extra_node.text = extra_value
 
-    def make_multi_rest(self, bar_number):
+    def make_multi_rest(self, bar_number, glob):
         self.bar_parent = ET.SubElement(self.part, 'measure')
         self.bar_parent.set('number', str(bar_number))
         attr = ET.SubElement(self.bar_parent, 'attributes')
+        if glob:
+            self.create_time_node(attr, glob.get('m'))
         measure_style = ET.SubElement(attr, 'measure-style')
         multiple_rest = ET.SubElement(measure_style, 'multiple-rest')
         multiple_rest.text = '1'
