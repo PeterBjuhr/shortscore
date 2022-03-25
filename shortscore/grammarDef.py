@@ -16,6 +16,7 @@ NOTEDEF = """
     UnPitchedStep?|unpitched
     UnpitchedOctave?|unpitched_oct
     UnPitchedEnd?|unpitched
+    Voice|
     Duration!|duration
     Tie?|tie_start,tie_end
     UnpitchedInstrument?|unpitched+unpitched_oct
@@ -70,6 +71,10 @@ NOTEEND = """
 NON_NOTES = """
     BarAttrStart|barattr
     BarAttrEnd|barattr
+    BackupStart|backup
+    BackupEnd|backup
+    ForwardStart|forward
+    ForwardEnd|forward
     """
 
 # Define which function to run on the newly created parser obj

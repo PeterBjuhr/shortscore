@@ -203,6 +203,11 @@ class MusicXMLExporter():
             text_node = ET.SubElement(direction_type, 'words')
             text_node.text = text
 
+    def create_duration(self, parent, duration):
+        if duration:
+            duration_node = ET.SubElement(parent, 'duration')
+            duration_node.text = duration
+
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:

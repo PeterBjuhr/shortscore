@@ -3,6 +3,7 @@ import math
 
 class ParseTreeObject:
     """Abstract class for the parse tree classes"""
+    voice = 1
     add_onfuncs = []
 
     def __init__(self):
@@ -302,6 +303,48 @@ class TimeModificationEnd(ParseTreeObject):
     def get_normal_notes(self):
         ratio = Fraction(self.token[:-1].replace('\\', '/'))
         return str(ratio.denominator)
+
+
+class DurationMove(BarTemporals):
+    """Representing a duration move"""
+    add_onfuncs = ['duration']
+
+    def set_token(self, token):
+        self.token = token
+        ParseTreeObject.voice += 1
+
+    def get_mxml_value(self):
+        if not self.divisions:
+            self.calculate_mxml_divisions()
+        divisions = self.divisions
+        duration_num = 4 * divisions
+        return str(int(duration_num))
+
+    def get_duration(self):
+        return self.get_mxml_value()
+
+
+class BackupStart(ParseTreeObject):
+    """Representing a duration move backwards"""
+
+
+class BackupEnd(DurationMove):
+    """Representing a duration move backwards"""
+
+
+class ForwardStart(ParseTreeObject):
+    """Representing a duration move forward"""
+
+
+class ForwardEnd(DurationMove):
+    """Representing a duration move forward"""
+
+
+class Voice(ParseTreeObject):
+    """Representing a voice number"""
+
+    def get_mxml_value(self):
+        return str(ParseTreeObject.voice)
 
 
 class NotationStart(ParseTreeObject):
