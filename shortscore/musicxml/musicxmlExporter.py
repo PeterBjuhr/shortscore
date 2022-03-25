@@ -203,6 +203,11 @@ class MusicXMLExporter():
             text_node = ET.SubElement(direction_type, 'words')
             text_node.text = text
 
+    def create_duration(self, parent, duration):
+        if duration:
+            duration_node = ET.SubElement(parent, 'duration')
+            duration_node.text = duration
+
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:
@@ -240,10 +245,12 @@ class MusicXMLExporter():
                 extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
                 extra_node.text = extra_value
 
-    def make_multi_rest(self, bar_number):
+    def make_multi_rest(self, bar_number, glob):
         self.bar_parent = ET.SubElement(self.part, 'measure')
         self.bar_parent.set('number', str(bar_number))
         attr = ET.SubElement(self.bar_parent, 'attributes')
+        if glob:
+            self.create_time_node(attr, glob.get('m'))
         measure_style = ET.SubElement(attr, 'measure-style')
         multiple_rest = ET.SubElement(measure_style, 'multiple-rest')
         multiple_rest.text = '1'

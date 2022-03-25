@@ -22,6 +22,7 @@ class ShortScoreLexer:
             'articulation': self._is_articulation,
             'ornament': self._is_ornament,
             'technical': self._is_technical,
+            'backup': self._is_backup,
             'barattr': self._is_barattr
             }
         if alter_lang == 'dutch':
@@ -111,6 +112,10 @@ class ShortScoreLexer:
     def _is_technical(self, char):
         if char == '×':
             yield ("tech", char + "".join(self.reader.read_while(use_in=TechnicalEnd.tech_dict)))
+
+    def _is_backup(self, char):
+        if char == '<':
+            yield ("backup", char + "".join(self.reader.read_while(use_in='<')))
 
     def _is_start_end(self, char, description, start_char, end_char):
         if char == start_char:
