@@ -457,6 +457,7 @@ class TechnicalEnd(ParseTreeObject):
     tech_dict = {
         'Ħ': 'down-bow',
         'V': 'up-bow',
+        '+': 'stopped'
     }
 
     def set_token(self, token):
