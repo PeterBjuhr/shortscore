@@ -88,7 +88,7 @@ class ShortScoreLexer:
         yield from self._is_start_end(char, 'slur', '(', ')')
 
     def _is_tie(self, char):
-        yield from self._is_start_end(char, 'tie', '>', '<')
+        yield from self._is_start_end(char, 'tie', '>', '&')
 
     def _is_grace(self, char):
         if char == 'µ':

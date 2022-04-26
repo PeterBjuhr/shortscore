@@ -72,6 +72,7 @@ class LilypondExporter():
             return " ".join(additions)
 
         text = re.sub(r'>\s*<', r'~ ', text)
+        text = re.sub(r'>\s*&', r'~ ', text)
         text = re.sub(r'«([^»]+)»', do_barattrs, text)
         text = re.sub(r'\{([^\}]+)\}', r"<\g<1>>", text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
@@ -84,6 +85,7 @@ class LilypondExporter():
         text = re.sub(r'𝄐', r"\\fermata", text)
         text = re.sub(r'×Ħ', r"\\downbow", text)
         text = re.sub(r'×V', r"\\upbow", text)
+        text = re.sub(r'×+', r"-+", text)
         text = re.sub(r'_t', r"\\trill", text)
         text = re.sub(r'_ł', r":32", text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)

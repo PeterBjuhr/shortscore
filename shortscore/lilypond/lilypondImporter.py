@@ -134,8 +134,9 @@ class LilypondImporter():
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         text = re.sub(r'([a-gis\',]+\d*)\((.+)\)', r'(\g<1> \g<2>)', text)
         text = text.replace('-.', '-·')
+        text = text.replace('-+', '×+')
         text = re.sub(r'\s+', r' ', text)
-        text = re.sub(r'~\s*', r'> <', text)
+        text = re.sub(r'~\s*', r'>&', text)
         return text
 
     def handle_multibar_rests(self, partname, bar, barnr):
