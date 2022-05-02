@@ -3,7 +3,7 @@ from xml.dom import minidom
 
 from shortscore.shortScoreLexer import ShortScoreLexer
 from shortscore.shortScoreParser import ShortScoreParser
-from shortscore.parseTreeClasses import Duration, TimeModificationStart, Tuplet
+from shortscore.parseTreeClasses import BarAttrStart, Duration, TimeModificationStart, Tuplet
 
 from .cleftypes import cleftypes
 from .general_midi import main
@@ -108,27 +108,46 @@ class MusicXMLExporter():
             input_str = input_str.replace(repl, '')
         return input_str
 
-    def calc_divisions(self, bar):
+    def pre_parse_bar(self, bar):
+        parse_result = {}
+        lexerlist = list(self.ssc_lexer.lex(bar))
+        pre_parser = self.ssc_parser.parse(iter(lexerlist))
+        obj = next(pre_parser)
+        if isinstance(obj, BarAttrStart):
+            parse_result['glob'] = next(pre_parser).lookup
+            lexerlist.pop(0)
         duration = None
-        for obj in self.ssc_parser.parse(self.ssc_lexer.lex(bar)):
-            if isinstance(obj, Duration):
-                duration = obj
-        if not duration:
-            raise Exception(f"Something went wrong! {bar}")
-        duration.calculate_mxml_divisions()
-        return duration.divisions
+        while True:
+            try:
+                if isinstance(obj, Duration):
+                    duration = obj
+                obj = next(pre_parser)
+            except StopIteration:
+                break
+        if duration:
+            duration.calculate_mxml_divisions()
+            parse_result['divisions'] = duration.divisions
+        return iter(lexerlist), parse_result
 
     def export_bar(self, glob, bar, bar_number=1):
+        lexer, preparsed = self.pre_parse_bar(bar)
+        add_glob = preparsed.get('glob')
+        if add_glob:
+            glob = {**glob, **add_glob}
+        divisions = preparsed.get('divisions')
+        if not divisions:
+            return self.make_multi_rest(bar_number, glob)
         self.bar_parent = ET.SubElement(self.part, 'measure')
         self.bar_parent.set('number', str(bar_number))
+        self.divisions = divisions
         attr = ET.SubElement(self.bar_parent, 'attributes')
         divs = ET.SubElement(attr, 'divisions')
-        divisions = self.divisions = self.calc_divisions(bar)
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
             self.create_tempomark(glob.get('t'))
-        self.parser_tree = self.ssc_parser.parse(self.ssc_lexer.lex(bar))
+            self.create_clef(attr, glob.get('c'))
+        self.parser_tree = self.ssc_parser.parse(lexer)
         self.create_nodes_from_parser_objects(self.bar_parent)
 
     def create_time_node(self, attrnode, timesign):
@@ -251,6 +270,7 @@ class MusicXMLExporter():
         attr = ET.SubElement(self.bar_parent, 'attributes')
         if glob:
             self.create_time_node(attr, glob.get('m'))
+            self.create_clef(attr, glob.get('c'))
         measure_style = ET.SubElement(attr, 'measure-style')
         multiple_rest = ET.SubElement(measure_style, 'multiple-rest')
         multiple_rest.text = '1'
