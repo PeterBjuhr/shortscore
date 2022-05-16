@@ -69,7 +69,7 @@ Brass
 58 Trombone
 59 Tuba
 60 Muted Trumpet
-61 French Horn
+61 Horn
 62 Brass Section
 63 Synth Brass 1
 64 Synth Brass 2
