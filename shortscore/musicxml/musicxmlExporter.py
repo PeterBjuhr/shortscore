@@ -133,6 +133,8 @@ class MusicXMLExporter():
         lexer, preparsed = self.pre_parse_bar(bar)
         add_glob = preparsed.get('glob')
         if add_glob:
+            if not glob:
+                glob = {}
             glob = {**glob, **add_glob}
         divisions = preparsed.get('divisions')
         if not divisions:
