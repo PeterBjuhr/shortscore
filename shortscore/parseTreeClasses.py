@@ -317,7 +317,8 @@ class DurationMove(BarTemporals):
         if not self.divisions:
             self.calculate_mxml_divisions()
         divisions = self.divisions
-        duration_num = 4 * divisions
+        ratiosum = sum(dur.get_ratio() * 4 for dur in self.durations)
+        duration_num = ratiosum * divisions
         return str(int(duration_num))
 
     def get_duration(self):
