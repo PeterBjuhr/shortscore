@@ -96,9 +96,9 @@ class MusicXMLExporter():
         if is_percussion:
             midi_program.text = "1"
             midi_unpitched = ET.SubElement(midi_instrument, 'midi-unpitched')
-            midi_unpitched.text = str(self.midi_instruments.get(midiname, '35'))
+            midi_unpitched.text = str(int(self.midi_instruments.get(midiname, '35')) + 1)
         else:
-            midi_program.text = str(self.midi_instruments.get(midiname, '1'))
+            midi_program.text = self.midi_instruments.get(midiname, '1')
         self.num += 1
 
     def do_replaces(self, input_str, replaces=None):
