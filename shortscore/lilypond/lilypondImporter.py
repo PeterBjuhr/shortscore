@@ -149,16 +149,32 @@ class LilypondImporter():
                     product *= int(i)
             return product
 
+        def get_multirests(mrest_str, scheme):
+            unit = scheme.get('u')
+            if mrest_str.startswith(unit):
+                bar_rests_str = mrest_str.replace(unit, '').strip('*')
+            else:
+                time_sign = scheme.get('m')
+                bar_len = Fraction(time_sign)
+                base_str = mrest_str.split('*')[0]
+                num_dots = base_str.count('.')
+                base_len = Fraction(1, int(base_str.replace('.', '')))
+                for n in range(num_dots):
+                    base_len *= Fraction('3/2')
+                if base_len < bar_len:
+                    bar_rests_str = "*".join(mrest_str.split('*')[2:])
+                else:
+                    bar_rests_str = "*".join(mrest_str.split('*')[1:])
+            return multiply_list(bar_rests_str.split('*'))
+
         words = bar.split()
         music_only = []
         for i, w in enumerate(words):
             if 'R' in w:
                 w = w.replace('R', '')
-                u, *mults = w.split('*')
-                if int(u.replace('.', '')) > 4:
-                    mults = mults[1:]
-                r = multiply_list(mults) or 1
-                self.ssc_score[partname] += [''] * r
+                num_bar_rests = get_multirests(w, self.lyscheme[barnr])
+                self.ssc_score[partname] += [''] * num_bar_rests
+                barnr += num_bar_rests
             else:
                 music_only.append(w)
         return " ".join(music_only)
