@@ -53,7 +53,7 @@ class LilypondExporter():
     def replace_perc_notes(self, barmusic, percussion_instr):
         for percdef in percussion_instr:
             display_pitch, _, ly_name = percdef
-            barmusic = barmusic.replace('x' + display_pitch, ly_name)
+            barmusic = re.sub(rf'x{display_pitch}([^,\']|$)', rf'{ly_name}\g<1>', barmusic)
         return barmusic
 
     def shortscore_to_ly(self, text):
