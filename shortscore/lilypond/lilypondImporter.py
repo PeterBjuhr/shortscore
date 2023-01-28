@@ -125,7 +125,7 @@ class LilypondImporter():
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
         text = re.sub(r'([>a-gis\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
-        text = re.sub(r'<([^>]+)>', r'{\g<1>}', text)
+        text = re.sub(r'<([^<>]+)>', r'{\g<1>}', text)
         text = re.sub(r'\\fermata\b', r'𝄐', text)
         text = re.sub(r'\\downbow\b', r'×Ħ', text)
         text = re.sub(r'\\upbow\b', r'×V', text)
