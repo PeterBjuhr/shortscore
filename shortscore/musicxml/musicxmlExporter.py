@@ -229,6 +229,10 @@ class MusicXMLExporter():
             duration_node = ET.SubElement(parent, 'duration')
             duration_node.text = duration
 
+    def create_dot(self, parent, num_dots):
+        for _ in range(num_dots):
+            dot_node = ET.SubElement(parent, 'dot')
+
     def create_nodes_from_parser_objects(self, parent):
         parser_object = next(self.parser_tree, None)
         if parser_object is not None:

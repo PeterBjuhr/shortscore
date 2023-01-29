@@ -263,10 +263,7 @@ class Duration(BarTemporals):
         return str(int(duration_num))
 
     def get_dot(self):
-        dot = False
-        if '.' in self.token:
-            dot = None
-        return dot
+        return self.token.count('.')
 
     def set_token_from_mxml(self, mxml_value):
         for duration in self.duration_names:
