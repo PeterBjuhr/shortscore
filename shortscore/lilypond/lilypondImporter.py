@@ -152,7 +152,7 @@ class LilypondImporter():
         def get_multirests(mrest_str, scheme):
             unit = scheme.get('u')
             if mrest_str.startswith(unit):
-                bar_rests_str = mrest_str.replace(unit, '').strip('*')
+                bar_rests_str = mrest_str.replace(unit, '', 1).strip('*')
             else:
                 time_sign = scheme.get('m')
                 bar_len = Fraction(time_sign)
