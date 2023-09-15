@@ -85,7 +85,7 @@ class LilypondExporter():
         text = re.sub(r'\{([^\}]+)\}', adapt_chord, text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
         text = re.sub(r'(\d+)\\(\d+):\[([^\]]+)\]', r"\\tuplet \g<1>/\g<2> {\g<3>}", text)
-        text = re.sub(r'([a-gis\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
+        text = re.sub(r'([a-giqst\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
         text = re.sub(r'\b([\w\'\,]+\d*\.*)µ', r"\\acciaccatura \g<1>", text)
         text = re.sub(r'\[([^\]]+)\]:µ', r"\\acciaccatura {\g<1>}", text)
         text = text.replace('-·', '-.')
@@ -97,7 +97,7 @@ class LilypondExporter():
         text = re.sub(r'_t', r"\\trill", text)
         text = re.sub(r'_ł', r":32", text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)
-        text = re.sub(r'\(([a-gis\',]+\d*\.*)', r'\g<1>(', text)
+        text = re.sub(r'\(([a-giqst\',]+\d*\.*)', r'\g<1>(', text)
         text = re.sub(r' +', ' ', text)
         return text
 
