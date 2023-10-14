@@ -115,10 +115,14 @@ class LilypondImporter():
         return barmusic
 
     def ly2shortscore(self, text):
+        def do_clef(matches):
+            clef = matches[1].replace('^8', '8U').replace('_8', '8D')
+            return f'«c:{clef}» '
+
         text = re.sub(r'~\s*}', r'}~', text)
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\fermata\b', r'𝄐', text)
-        text = re.sub(r'\\clef\s(\w+)\b', r'«c:\g<1>»', text)
+        text = re.sub(r'\\clef\s"?(\w+)"?\s', do_clef, text)
         text = re.sub(r'\\([mpfsz<>!]+)', r'«d:\g<1>»', text)
         text = re.sub(r'\^"([^"]+)"', r'«w:\g<1>»', text)
         text = re.sub(r'\\instrumentSwitch\s"([^"]+)"', r'«w:\g<1>»', text)

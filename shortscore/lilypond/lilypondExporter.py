@@ -62,7 +62,11 @@ class LilypondExporter():
             additions = []
             clef = change_dict.get('c')
             if clef:
-                additions.append(f'\clef {clef}')
+                if 'U' in clef or 'D' in clef:
+                    clef = clef.replace('8U', '^8').replace('8D', '_8')
+                    additions.append(f'\clef "{clef}"')
+                else:
+                    additions.append(f'\clef {clef}')
             dynamic = change_dict.get('d')
             if dynamic:
                 additions.append(f'\{dynamic}')
