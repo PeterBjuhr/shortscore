@@ -119,6 +119,7 @@ class LilypondImporter():
             clef = matches[1].replace('^8', '8U').replace('_8', '8D')
             return f'«c:{clef}» '
 
+        text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
         text = re.sub(r'~\s*}', r'}~', text)
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\fermata\b', r'𝄐', text)
@@ -129,7 +130,6 @@ class LilypondImporter():
         text = re.sub(r'\\(?:grace|acciaccatura)\s*([\w\',]+\d*\.*)', r'\g<1>µ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
         text = re.sub(r'([>a-giqst\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
-        text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
         text = re.sub(r'<([^<>]+)>', r'{\g<1>}', text)
         text = re.sub(r'\\downbow\b', r'×Ħ', text)
         text = re.sub(r'\\upbow\b', r'×V', text)
