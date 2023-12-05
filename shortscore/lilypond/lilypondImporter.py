@@ -119,9 +119,9 @@ class LilypondImporter():
             clef = matches[1].replace('^8', '8U').replace('_8', '8D')
             return f'«c:{clef}» '
 
+        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
         text = re.sub(r'~\s*}', r'}~', text)
-        text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'\\fermata\b', r'𝄐', text)
         text = re.sub(r'\\clef\s"?(\w+)"?\s', do_clef, text)
         text = re.sub(r'\\([mpfsz<>!]+)', r'«d:\g<1>»', text)
