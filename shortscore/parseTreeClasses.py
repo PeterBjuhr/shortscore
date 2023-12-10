@@ -250,7 +250,8 @@ class Duration(BarTemporals):
             4: 'quarter',
             8: 'eighth',
             16: '16th',
-            32: '32nd'
+            32: '32nd',
+            64: '64th'
         }
     add_onfuncs = ['dot']
 
