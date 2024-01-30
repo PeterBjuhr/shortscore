@@ -50,9 +50,15 @@ class MusicXMLExporter():
                 if char.isupper():
                     return name[i:]
 
+        def convert_camel_case(name):
+            return ''.join(' ' + n if n.isupper() else n for n in name).strip()
+
+        def remove_roman_numerals(name):
+            return " ".join(n for n in name.split() if n not in ['I', 'V', 'X'])
+
         replaces = ['Lh', 'Rh', 'Solo']
-        self.partnames = {k: self.do_replaces(remove_prefix(v), replaces) for k, v in partdef.items()}
-        self.instrument_names = {k: [(k, v, None, False)] for k, v in self.partnames.items()}
+        self.partnames = {k: convert_camel_case(self.do_replaces(remove_prefix(v), replaces)) for k, v in partdef.items()}
+        self.instrument_names = {k: [(k, remove_roman_numerals(v), None, False)] for k, v in self.partnames.items()}
         for key, additional_instruments in percdef.items():
            self.instrument_names[key] = [t + (True,) for t in additional_instruments]
         self.midi_instruments = main()
@@ -92,7 +98,7 @@ class MusicXMLExporter():
         midi_channel = ET.SubElement(midi_instrument, 'midi-channel')
         midi_channel.text = "10" if is_percussion else str(num)
         midi_program = ET.SubElement(midi_instrument, 'midi-program')
-        midiname = self.do_replaces(instr_name, ['IV', 'I'])
+        midiname = instr_name
         if is_percussion:
             midi_program.text = "1"
             midi_unpitched = ET.SubElement(midi_instrument, 'midi-unpitched')
