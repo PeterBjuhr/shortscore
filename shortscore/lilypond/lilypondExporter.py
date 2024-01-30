@@ -83,8 +83,7 @@ class LilypondExporter():
                 chord += durations[-1]
             return chord
 
-        text = re.sub(r'>\s*<', r'~ ', text)
-        text = re.sub(r'>\s*&', r'~ ', text)
+        text = re.sub(r'>&?', r'~', text)
         text = re.sub(r'«([^»]+)»', do_barattrs, text)
         text = re.sub(r'\{([^\}]+)\}', adapt_chord, text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
