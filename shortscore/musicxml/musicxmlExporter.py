@@ -7,6 +7,7 @@ from shortscore.parseTreeClasses import BarAttrStart, Duration, TimeModification
 
 from .cleftypes import cleftypes
 from .general_midi import main
+from .instrument_sounds import get_dict
 
 class MusicXMLExporter():
 
@@ -62,6 +63,7 @@ class MusicXMLExporter():
         for key, additional_instruments in percdef.items():
            self.instrument_names[key] = [t + (True,) for t in additional_instruments]
         self.midi_instruments = main()
+        self.instrument_sounds = get_dict()
 
     def setup_part(self, part):
         num = self.num
@@ -88,6 +90,13 @@ class MusicXMLExporter():
         instrument.set('id', instrument_id)
         instrument_name = ET.SubElement(instrument, 'instrument-name')
         instrument_name.text = instr_name
+        sound_key = "-".join(instr_name.split()).lower()
+        sound_name = self.instrument_sounds.get(sound_key)
+        if sound_name:
+            instrument_sound = ET.SubElement(instrument, 'instrument-sound')
+            instrument_sound.text = sound_name
+        else:
+            print(f'Missing instrument sound for {instr_name}.')
         self.num += 1
 
     def setup_midi_instrument(self, score_part, instr_name, is_percussion):
