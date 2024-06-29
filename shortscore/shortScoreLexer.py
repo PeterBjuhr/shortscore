@@ -25,6 +25,7 @@ class ShortScoreLexer:
             'backup': self._is_backup,
             'barattr': self._is_barattr
             }
+        self.note_cache = NoteCache()
         if alter_lang == 'dutch':
             self.alter_regex = self.dutch_alter_regex
         else:
@@ -41,6 +42,7 @@ class ShortScoreLexer:
             for token_type in self._token_types_dict:
                 for token in self._token_types_dict[token_type](char):
                     yield token
+        self.note_cache.clean_cache()
 
     def convert_from_alternative_syntax(self, bar_of_music):
         def separate_expr(matches):
@@ -60,11 +62,15 @@ class ShortScoreLexer:
             yield ("unpitched", "".join(self.reader.read_while(use_re=r'[a-g]')))
             yield ("unpitched_oct", "".join(self.reader.read_while(use_in = "',")))
         elif re.match(r'[a-g]', char):
+            func = self.note_cache.get_func(char)
+            if func:
+                yield from func()
             yield ("pitchstep", char)
             alter = "".join(self.reader.read_while(use_re = self.alter_regex))
             if alter:
                 yield ("pitchalter", alter)
             yield ("octave", "".join(self.reader.read_while(use_in = "',")))
+            self.note_cache.add_note(char)  
 
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
@@ -118,8 +124,11 @@ class ShortScoreLexer:
             yield ("backup", char + "".join(self.reader.read_while(use_in='<')))
 
     def _is_start_end(self, char, description, start_char, end_char):
+        enabled_automatic_end = ['>']
         if char == start_char:
             yield (f"{description}_start", char)
+            if char in enabled_automatic_end:
+                self.note_cache.add_func(lambda: self._is_start_end(end_char, description, start_char, end_char))
         if char == end_char:
             yield (f"{description}_end", char)
 
@@ -162,3 +171,27 @@ class ShortScoreReader:
                 break
             yield char
             self.goto_next()
+
+
+class NoteCache:
+    """Cache notes to be able to add stop char automatically"""
+
+    def __init__(self):
+        self._cached_notes = []
+
+    def clean_cache(self):
+        self._cached_notes = [n for n in self._cached_notes if n.get('func')]
+
+    def add_note(self, note):
+        self._cached_notes.append({'char': note})
+
+    def add_func(self, func):
+        self._cached_notes[-1]['func'] = func
+
+    def get_func(self, note):
+        for cached_item in self._cached_notes:
+            if note == cached_item['char']:
+                func = cached_item.get('func')
+                if func:
+                    cached_item['func'] = None
+                    return func
