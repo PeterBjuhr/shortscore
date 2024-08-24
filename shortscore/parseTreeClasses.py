@@ -56,7 +56,7 @@ class NoteStart(Note):
     """Representing the start of the note"""
 
     def attr_print_object(self):
-        if self.token[-1] == 's':
+        if self.token and self.token[-1] == 's':
             return 'no'
 
 
@@ -258,7 +258,6 @@ class Duration(BarTemporals):
             32: '32nd',
             64: '64th'
         }
-    add_onfuncs = ['dot']
 
     def get_mxml_value(self):
         if not self.divisions:
@@ -268,17 +267,11 @@ class Duration(BarTemporals):
         duration_num = 4 * ratio * divisions
         return str(int(duration_num))
 
-    def get_dot(self):
-        return self.token.count('.')
-
     def set_token_from_mxml(self, mxml_value):
         for duration in self.duration_names:
             if self.duration_names[duration] == mxml_value:
                 self.token = str(duration)
                 break
-
-    def modify_dot(self, text):
-        self.token += '.'
 
 
 class Type(ParseTreeObject):
@@ -288,6 +281,24 @@ class Type(ParseTreeObject):
         duration = int(self.token.replace('.', ''))
         if duration in Duration.duration_names:
             return Duration.duration_names[duration]
+
+
+class Dot(ParseTreeObject):
+    """Representing a dot"""
+
+    def set_token(self, token):
+        self.token = token
+        num_dots = token.count('.')
+        if not num_dots:
+            self.skip = True
+        elif num_dots > 1:
+            self.add_onfuncs = []
+            setattr(self, 'get_dot', lambda: None)
+            for _ in range(num_dots - 1):
+                self.add_onfuncs.append('dot')
+
+    def modify_dot(self, text):
+        self.token += '.'
 
 
 class TimeModificationStart(ParseTreeObject):
@@ -437,7 +448,7 @@ class Notehead(ParseTreeObject):
 
     def set_token(self, token):
         self.token = token
-        if token[-1] != 't':
+        if not token or token[-1] != 't':
             self.skip = True
 
     def attr_filled(self):
