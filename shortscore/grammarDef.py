@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Define the grammar of a single note
-# classname (?=optional, !=derived) | from token | ends on token
+# classname (?=optional, !=derived, ¡=shadowed) | from token | ends on token
 NOTEDEF = """
     NoteStart|harmonic
     Grace?|grace
@@ -21,6 +21,7 @@ NOTEDEF = """
     UnpitchedInstrument?|unpitched+unpitched_oct
     Voice|
     Type!|duration
+    Dot!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
     Notehead?|harmonic

@@ -50,6 +50,7 @@ class ShortScoreParser:
 
     def parse_note(self, note_tokens):
         for grammar_obj in self.syntax_list:
+            token_str = None
             if not grammar_obj.lexernames and grammar_obj.optional == 'no':
                 yield self.create_obj_from_classname(grammar_obj.classname)
                 continue
@@ -69,12 +70,8 @@ class ShortScoreParser:
                         token_type, token_str = getattr(self, grammar_obj.classname.lower())
                     else:
                         continue
-                else:
-                    required = str(grammar_obj.lexernames)
-                    raise Exception(f"Required token {required} not found!")
             obj = self.create_obj_from_classname(grammar_obj.classname)
-            if token_str:
-                obj.set_token(token_str)
+            obj.set_token(token_str)
             self.check_obj_func(obj, note_tokens)
             if not obj.skip:
                 yield obj
