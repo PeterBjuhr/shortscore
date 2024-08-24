@@ -76,7 +76,8 @@ class ShortScoreParser:
             if token_str:
                 obj.set_token(token_str)
             self.check_obj_func(obj, note_tokens)
-            yield obj
+            if not obj.skip:
+                yield obj
         self.check_endtokens(note_tokens)
 
     def check_endtokens(self, note_tokens):
@@ -109,7 +110,8 @@ class ShortScoreParser:
 
     def create_obj_from_classname(self, classname):
         instance = globals().get(classname)
-        return instance()
+        if instance:
+            return instance()
 
     def create_obj_from_lexer(self, lexertoken, classname):
         token_type, token_str = lexertoken

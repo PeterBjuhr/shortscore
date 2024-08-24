@@ -83,6 +83,7 @@ class LilypondExporter():
                 chord += durations[-1]
             return chord
 
+        note = r"[a-giqst',]+"
         text = re.sub(r'(?<!-)>&?', r'~', text)
         text = re.sub(r'«([^»]+)»', do_barattrs, text)
         text = re.sub(r'\{([^\}]+)\}', adapt_chord, text)
@@ -93,10 +94,12 @@ class LilypondExporter():
         text = re.sub(r'\[([^\]]+)\]:µ', r"\\acciaccatura {\g<1>}", text)
         text = text.replace('-·', '-.')
         text = re.sub(r':(\D+)\b', r"\\\g<1>", text)
+        text = re.sub(rf'<({note})♢ab ({note})♢at {note}♢as>', r"<\g<1> \g<2>\\harmonic>", text)
         text = re.sub(r'𝄐', r"\\fermata", text)
         text = re.sub(r'×Ħ', r"\\downbow", text)
         text = re.sub(r'×V', r"\\upbow", text)
-        text = re.sub(r'×+', r"-+", text)
+        text = re.sub(r'×Ỏ', r"\\snappizzicato", text)
+        text = re.sub(r'×\+', r"-+", text)
         text = re.sub(r'_t', r"\\trill", text)
         text = re.sub(r'_ł', r":32", text)
         text = re.sub(r'(.+)<<(.+)', r'<<{\g<1>}\\\\{\g<2>}>>', text)

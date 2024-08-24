@@ -34,13 +34,16 @@ class MusicXMLExporter():
             'Tie': ['type'],
             'Tied': ['type'],
             'Grace': ['slash'],
-            'Glissando': ['line_type', 'type']
+            'Glissando': ['line_type', 'type'],
+            'NoteStart': ['print_object'],
+            'Notehead': ['filled']
         }
 
     def __init__(self, language='default'):
         self.ssc_lexer = ShortScoreLexer(language)
         self.ssc_parser = ShortScoreParser(language)
         self.root = ET.Element("score-partwise")
+        self.root.set('version', "4.0")
         self.tree = ET.ElementTree(self.root)
         self.partlist = ET.SubElement(self.root, 'part-list')
         self.num = 1
@@ -92,11 +95,6 @@ class MusicXMLExporter():
         instrument_name.text = instr_name
         sound_key = "-".join(instr_name.split()).lower()
         sound_name = self.instrument_sounds.get(sound_key)
-        if sound_name:
-            instrument_sound = ET.SubElement(instrument, 'instrument-sound')
-            instrument_sound.text = sound_name
-        else:
-            print(f'Missing instrument sound for {instr_name}.')
         self.num += 1
 
     def setup_midi_instrument(self, score_part, instr_name, is_percussion):
@@ -305,7 +303,7 @@ class MusicXMLExporter():
     def write_to_file(self, filename):
         with open(filename, 'w') as file_obj:
             decl = '<?xml version="1.0" encoding="UTF-8"?>'
-            doctype = '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">'
+            doctype = '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">'
             rough_string = ET.tostring(self.root, encoding='unicode')
             reparsed = minidom.parseString(decl + doctype + rough_string)
             file_obj.write(reparsed.toprettyxml(indent="  "))
