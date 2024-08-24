@@ -197,6 +197,13 @@ PERC_DEFS = """
 81 Open Triangle
 """
 
+ADD_ONS = {
+    'Violins': '49',
+    'Violas': '49',
+    'Cellos': '49',
+    'Contrabasses': '49'
+}
+
 def main():
     FULL_LIST = GM_DEFS + PERC_DEFS
     pre_list = [row for row in FULL_LIST.split('\n') if row and row[0].isdigit()]
@@ -204,4 +211,4 @@ def main():
     for row in pre_list:
         for number, name in re.findall(r'(\d+)\s(.*)', row):
             GM_PROG_NR[name] = number
-    return GM_PROG_NR
+    return {**GM_PROG_NR, **ADD_ONS}

@@ -3,7 +3,7 @@ from pathlib import Path
 # Define the grammar of a single note
 # classname (?=optional, !=derived) | from token | ends on token
 NOTEDEF = """
-    NoteStart|
+    NoteStart|harmonic
     Grace?|grace
     Chord¡|chord_start|chord_end
     Rest?|rest
@@ -16,26 +16,29 @@ NOTEDEF = """
     UnPitchedStep?|unpitched
     UnpitchedOctave?|unpitched_oct
     UnPitchedEnd?|unpitched
-    Voice|
     Duration!|duration
     Tie?|tie_start,tie_end
     UnpitchedInstrument?|unpitched+unpitched_oct
+    Voice|
     Type!|duration
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
-    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,ornament,tech,fermata
+    Notehead?|harmonic
+    NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,ornament,tech,harmonic,fermata
     ArticulationStart?|artic
     ArticulationEnd?|artic
     OrnamentStart?|ornament
     OrnamentEnd?|ornament
-    TechnicalStart?|tech
-    TechnicalEnd?|tech
+    TechnicalStart?|tech,harmonic
+    HarmonicStart?|harmonic
+    HarmonicEnd?|harmonic
+    TechnicalEnd?|tech,harmonic
     Slur?|slur_start,slur_end
     Tied?|tie_start,tie_end
     Tuplet?|tuplet_start,tuplet_end
     Glissando?|gliss_start,gliss_end
     Fermata?|fermata
-    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,ornament,tech,fermata
+    NotationEnd?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,ornament,tech,harmonic,fermata
     NoteEnd|
     """
 # Define which tokens could start a new note
@@ -64,6 +67,7 @@ NOTEEND = """
     artic
     ornament
     tech
+    harmonic
     fermata
     """
 

@@ -19,6 +19,7 @@ class ShortScoreLexer:
             'grace': self._is_grace,
             'gliss': self._is_gliss,
             'fermata': self._is_fermata,
+            'harmonic': self._is_harmonics,
             'articulation': self._is_articulation,
             'ornament': self._is_ornament,
             'technical': self._is_technical,
@@ -106,6 +107,10 @@ class ShortScoreLexer:
     def _is_fermata(self, char):
         if char == '𝄐':
             yield ("fermata", char)
+
+    def _is_harmonics(self, char):
+        if char == '♢':
+            yield ('harmonic', char + "".join(self.reader.read_while(use_in='anbts')))
 
     def _is_articulation(self, char):
         if char == '-':

@@ -5,6 +5,7 @@ class ParseTreeObject:
     """Abstract class for the parse tree classes"""
     voice = 1
     add_onfuncs = []
+    skip = False
 
     def __init__(self):
         self.token = None
@@ -53,6 +54,10 @@ class Note(ParseTreeObject):
 
 class NoteStart(Note):
     """Representing the start of the note"""
+
+    def attr_print_object(self):
+        if self.token[-1] == 's':
+            return 'no'
 
 
 class NoteEnd(Note):
@@ -403,6 +408,45 @@ class Fermata(ParseTreeObject):
     """Representing a fermata"""
 
 
+class HarmonicStart(ParseTreeObject):
+    """Representing a harmonic start"""
+
+class HarmonicEnd(ParseTreeObject):
+    """Representing a harmonic end"""
+
+    harm_dict = {
+        'a': 'artificial',
+        'n': 'natural',
+        'b': 'base-pitch',
+        't': 'touching-pitch',
+        's': 'sounding-pitch'
+    }
+
+    def set_token(self, token):
+        self.token = token
+        self.add_onfuncs = []
+        for char in token:
+            harm_name = self.harm_dict.get(char)
+            if harm_name:
+                setattr(self, 'get_' + harm_name, lambda: None)
+                self.add_onfuncs.append(harm_name)
+
+
+class Notehead(ParseTreeObject):
+    """Representing a note head"""
+
+    def set_token(self, token):
+        self.token = token
+        if token[-1] != 't':
+            self.skip = True
+
+    def attr_filled(self):
+        return 'no'
+
+    def get_mxml_value(self):
+        return 'diamond'
+
+
 class ArticulationStart(ParseTreeObject):
     """Representing an articulation"""
 
@@ -456,13 +500,15 @@ class TechnicalEnd(ParseTreeObject):
     tech_dict = {
         'Ħ': 'down-bow',
         'V': 'up-bow',
-        '+': 'stopped'
+        '+': 'stopped',
+        'Ỏ': 'snap-pizzicato'
     }
 
     def set_token(self, token):
         self.token = token
-        tech_name = self.tech_dict.get(token[1])
-        if tech_name:
-            setattr(self, 'get_' + tech_name, lambda: None)
-            self.add_onfuncs = []
-            self.add_onfuncs.append(tech_name)
+        self.add_onfuncs = []
+        for char in token:
+            tech_name = self.tech_dict.get(char)
+            if tech_name:
+                setattr(self, 'get_' + tech_name, lambda: None)
+                self.add_onfuncs.append(tech_name)
