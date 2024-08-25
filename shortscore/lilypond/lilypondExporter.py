@@ -83,7 +83,7 @@ class LilypondExporter():
                 chord += durations[-1]
             return chord
 
-        note = r"[a-giqst',]+"
+        note = r"[a-giqst',~]+"
         text = re.sub(r'(?<!-)>&?', r'~', text)
         text = re.sub(r'«([^»]+)»', do_barattrs, text)
         text = re.sub(r'\{([^\}]+)\}', adapt_chord, text)
