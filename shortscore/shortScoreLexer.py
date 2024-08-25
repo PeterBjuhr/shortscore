@@ -63,15 +63,17 @@ class ShortScoreLexer:
             yield ("unpitched", "".join(self.reader.read_while(use_re=r'[a-g]')))
             yield ("unpitched_oct", "".join(self.reader.read_while(use_in = "',")))
         elif re.match(r'[a-g]', char):
-            func = self.note_cache.get_func(char)
+            alter = "".join(self.reader.read_while(use_re = self.alter_regex))
+            octave = "".join(self.reader.read_while(use_in = "',"))
+            note = char + alter + octave
+            func = self.note_cache.get_func(note)
             if func:
                 yield from func()
             yield ("pitchstep", char)
-            alter = "".join(self.reader.read_while(use_re = self.alter_regex))
             if alter:
                 yield ("pitchalter", alter)
-            yield ("octave", "".join(self.reader.read_while(use_in = "',")))
-            self.note_cache.add_note(char)  
+            yield ("octave", octave)
+            self.note_cache.add_note(note)
 
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
