@@ -132,7 +132,7 @@ class LilypondImporter():
         text = re.sub(r'\\downbow\b', r'×Ħ', text)
         text = re.sub(r'\\upbow\b', r'×V', text)
         text = re.sub(r'\\snappizzicato\b', r'×Ỏ', text)
-        text = re.sub(r'<([a-giqst\',]+)\s*([a-giqst\',]+)\s*\\harmonic\s*>', r"{\g<1>♢ab \g<2>♢at \g<1>''♢as}", text)
+        text = re.sub(r'<([a-giqst\',]+)(~)?\s*([a-giqst\',~]+)\s*\\harmonic\s*>', r"{\g<1>\g<2>♢ab \g<3>♢at \g<1>''\g<2>♢as}", text)
         text = re.sub(r'\\trill\b', r'_t', text)
         text = re.sub(r':32\b', r'_ł', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
