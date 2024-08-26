@@ -124,7 +124,7 @@ class MusicXMLExporter():
     def pre_parse_bar(self, bar):
         parse_result = {}
         lexerlist = list(self.ssc_lexer.lex(bar))
-        pre_parser = self.ssc_parser.parse(iter(lexerlist))
+        pre_parser = self.ssc_parser.parse(iter(lexerlist), bar)
         obj = next(pre_parser)
         if isinstance(obj, BarAttrStart):
             parse_result['glob'] = next(pre_parser).lookup
@@ -162,7 +162,7 @@ class MusicXMLExporter():
             self.create_time_node(attr, glob.get('m'))
             self.create_tempomark(glob.get('t'))
             self.create_clef(attr, glob.get('c'))
-        self.parser_tree = self.ssc_parser.parse(lexer)
+        self.parser_tree = self.ssc_parser.parse(lexer, bar)
         self.create_nodes_from_parser_objects(self.bar_parent)
 
     def create_time_node(self, attrnode, timesign):

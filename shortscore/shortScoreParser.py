@@ -23,7 +23,7 @@ class ShortScoreParser:
         Pitch.language = self.language
         self.ahead_tokens = []
 
-    def parse(self, shortscore_lexer_tokens):
+    def parse(self, shortscore_lexer_tokens, bar):
         note_tokens = self.ahead_tokens or []
         self.init_bar()
         while True:
@@ -35,7 +35,7 @@ class ShortScoreParser:
                 elif last_lexer in self.allowed_ahead_tokens:
                     self.ahead_tokens.append(note_tokens[-1])
                 elif note_tokens:
-                    raise Exception(f'Wrong syntax: incomplete note! {note_tokens}')
+                    raise Exception(f'Error in bar: {bar} - incomplete note! {note_tokens}')
                 break
             token_type, _ = next_token
             if token_type in self.non_notes or token_type in self.lexer_notestart:
