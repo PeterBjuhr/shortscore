@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+import argparse
+
+from shortscore import shortScore
+
+def create_ssc(*args, **kwargs):
+    new_file = kwargs.get('ssc-name')
+    if not new_file.endswith('.ssc'):
+        new_file += '.ssc'
+    shortscore = shortScore.ShortScore()
+    shortscore.write_to_shortscore_file(new_file)
+
+def edit_ssc(*args, **kwargs):
+    pass
+
+def export_ssc(*args, **kwargs):
+    ssc_file = kwargs.get('ssc-file')
+    if not ssc_file.endswith('.ssc'):
+        ssc_file += '.ssc'
+    output_file = kwargs.get('output-file')
+    export_format = kwargs.get('export_format')
+    shortscore = shortScore.ShortScore()
+    shortscore.read_shortscore(ssc_file)
+    if export_format == 'ly':
+        shortscore.export_to_ly(output_file)
+    else:
+        shortscore.export_to_mxml(output_file)
+
+def import_to_ssc(*args, **kwargs):
+    ssc_file = kwargs.get('ssc-name')
+    import_file = kwargs.get('import-file')
+    import_format = kwargs.get('import_format')
+    if import_format == 'ly':
+        shortscore = shortScore.ShortScore(ssc_file)
+        shortscore.import_from_ly(import_file)
+        shortscore.write_to_shortscore_file(ssc_file)
+
+
+SUB_PARSERS = [
+    {
+        'parser-name': 'create',
+        'help': 'create a shortscore',
+        'args': ['ssc-name'],
+        'func': create_ssc
+    },
+    {
+        'parser-name': 'edit',
+        'help': 'edit a shortscore',
+        'args': ['ssc-file'],
+        'func': edit_ssc
+    },
+    {
+        'parser-name': 'export',
+        'help': 'export a shortscore',
+        'args': ['ssc-file', 'output-file', '--export-format'],
+        'func': export_ssc
+    },
+    {
+        'parser-name': 'import',
+        'help': 'import to shortscore',
+        'args': ['import-file', 'ssc-name', '--import-format'],
+        'func': import_to_ssc
+    },
+]
+
+def get_command(parser_name):
+    for parser in SUB_PARSERS:
+        if parser['parser-name'] == parser_name:
+            return (parser['func'], parser['args'])
+
+def main():
+    main_parser = argparse.ArgumentParser(description="A CLI for shortscore")
+    subparsers = main_parser.add_subparsers(dest="command")
+    
+    for parser in SUB_PARSERS:
+        subparser = subparsers.add_parser(parser['parser-name'], help=parser['help'])
+        for arg in parser['args']:
+            subparser.add_argument(arg)
+
+    args = main_parser.parse_args()
+    if args.command:
+        cmd, arg_names = get_command(args.command)
+        cmd(*arg_names, **vars(args))
+
+
+if __name__ == "__main__":
+    main()
