@@ -18,8 +18,8 @@ class ShortScoreTestCase(unittest.TestCase):
         lilyPondExampleFilename = shortScoreExampleDir + '/test.ly'
         self.copyOfLilyPondExampleFilename = shortScoreDir + '/test.ly'
         shutil.copyfile(lilyPondExampleFilename, self.copyOfLilyPondExampleFilename);
-        shortScoreExampleFilename = shortScoreExampleDir + '/test.sly'
-        self.copyOfShortScoreExampleFilename = shortScoreDir + '/test.sly'
+        shortScoreExampleFilename = shortScoreExampleDir + '/test.ssc'
+        self.copyOfShortScoreExampleFilename = shortScoreDir + '/test.ssc'
         shutil.copyfile(shortScoreExampleFilename, self.copyOfShortScoreExampleFilename)
         self.shortscore = ShortScore()
 
