@@ -160,7 +160,7 @@ class MusicXMLExporter():
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
-            self.create_tempomark(glob.get('t'))
+            self.create_tempomark(glob.get('t'), glob.get('tt'))
             self.create_clef(attr, glob.get('c'))
         self.parser_tree = self.ssc_parser.parse(lexer, bar)
         self.create_nodes_from_parser_objects(self.bar_parent)
@@ -196,7 +196,7 @@ class MusicXMLExporter():
         direction_type = ET.SubElement(direction, 'direction-type')
         return direction_type
 
-    def create_tempomark(self, tempo):
+    def create_tempomark(self, tempo, tempotext=None):
         if tempo:
             beat_unit_dot = False
             beat_unit, per_minute = tempo.split('=')
@@ -205,6 +205,9 @@ class MusicXMLExporter():
                 beat_unit = beat_unit.replace('.', '')
             beat_unit = Duration.duration_names.get(int(beat_unit)) or 'quarter'
             direction_type = self.create_direction()
+            if tempotext:
+                words = ET.SubElement(direction_type, 'words')
+                words.text = tempotext
             metronome = ET.SubElement(direction_type, 'metronome')
             bunode = ET.SubElement(metronome, 'beat-unit')
             bunode.text = beat_unit

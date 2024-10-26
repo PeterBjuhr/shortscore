@@ -59,9 +59,13 @@ class LilypondImporter():
             m = re.search(r"\\time\s*([\w\W]+)\b", g)
             if m:
                 glob_dict['m'] = timesign = m.group(1)
-            t = re.search(r"\\tempo\s*([\w\W]+)\b", g)
+            t = re.search(r"\\tempo\s*(\D+)?(\d+=\d+)", g)
             if t:
-                glob_dict['t'] = t.group(1)
+                text = t.group(1)
+                if text:
+                    glob_dict['tt'] = text.strip().strip('"')
+                tempo = t.group(2)
+                glob_dict['t'] = tempo
             rm = re.search(r"\\mark\s*([\w\W]+)\b", g)
             if rm:
                 mark = rm.group(1)
