@@ -182,7 +182,11 @@ class LilypondImporter():
         for i, w in enumerate(words):
             if 'R' in w:
                 w = w.replace('R', '')
-                num_bar_rests = get_multirests(w, self.lyscheme[barnr])
+                try:
+                    barscheme = self.lyscheme[barnr]
+                except IndexError:
+                    raise Exception(f'Index {barnr} is missing in the bar scheme. The scheme has {len(self.lyscheme)} bars.')
+                num_bar_rests = get_multirests(w, barscheme)
                 self.ssc_score[partname] += [''] * num_bar_rests
                 barnr += num_bar_rests
             else:
