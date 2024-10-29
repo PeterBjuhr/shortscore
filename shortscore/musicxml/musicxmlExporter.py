@@ -85,6 +85,7 @@ class MusicXMLExporter():
             if is_percussion:
                 self.current_percussion[display_note] = f'P{self.num}-X{self.num}'
             self.setup_midi_instrument(score_part, longname, is_percussion)
+        return partname
 
     def setup_score_instrument(self, score_part, instr_name, is_percussion):
         num = self.num

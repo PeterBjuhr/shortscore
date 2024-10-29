@@ -3,6 +3,7 @@ import os
 from .shortScoreLexer import ShortScoreLexer
 from .shortScoreParser import ShortScoreParser
 from .backTranslator import BackTranslator
+from .defaultClefs import default_clefs
 from .lilypond.lilypondExporter import LilypondExporter
 from .lilypond.lilypondImporter import LilypondImporter
 from .musicxml.musicxmlExporter import MusicXMLExporter
@@ -202,11 +203,18 @@ class ShortScore():
         """Export to MusicXML file"""
         self.mxml_exporter.set_partdef(self.partdef, self.percdef)
         for part in self.parts:
-            self.mxml_exporter.setup_part(part)
+            partname = self.mxml_exporter.setup_part(part)
             for num, bar in enumerate(self.score[part]):
+                glob_org = self.score[self.glob][num]
+                glob = glob_org.copy() if glob_org else {}
+                if num < 1:
+                    instrument = partname.replace(' I', '').replace(' V', '').strip()
+                    default_clef = default_clefs.get(instrument.lower())
+                    if default_clef:
+                        glob['c'] = default_clef
                 bar_number = num + 1
                 if bar:
-                    self.mxml_exporter.export_bar(self.score[self.glob][num], bar, bar_number)
+                    self.mxml_exporter.export_bar(glob, bar, bar_number)
                 else:
                     self.mxml_exporter.make_multi_rest(bar_number, self.score[self.glob][num])
         self.mxml_exporter.write_to_file(xml_file)
