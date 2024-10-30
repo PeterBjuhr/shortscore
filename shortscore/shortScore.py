@@ -216,7 +216,7 @@ class ShortScore():
                 if bar:
                     self.mxml_exporter.export_bar(glob, bar, bar_number)
                 else:
-                    self.mxml_exporter.make_multi_rest(bar_number, self.score[self.glob][num])
+                    self.mxml_exporter.make_multi_rest(bar_number, glob)
         self.mxml_exporter.write_to_file(xml_file)
 
     def import_from_mxml(self, xmlfile):
