@@ -104,7 +104,7 @@ class ShortScoreLexer:
             yield ("grace", char)
 
     def _is_gliss(self, char):
-        yield from self._is_start_end(char, 'gliss', '~', '·')
+        yield from self._is_start_end(char, 'gliss', '~', '^')
 
     def _is_fermata(self, char):
         if char == '𝄐':

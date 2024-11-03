@@ -125,14 +125,12 @@ class LilypondImporter():
 
         text = re.sub(r'\\tuplet\s*(\d+)/(\d+)\s*\{([^\}]+)}', r'\g<1>\\\g<2>:[\g<3>]', text)
         text = re.sub(r'<<\s*\{\s*([^}]+)\}\s*\\\\\s*\{\s*([^}]+)\}\s*>>', r'\g<1><<\g<2>', text)
-        text = re.sub(r'~\s*}', r'}~', text)
         text = re.sub(r'\\fermata\b', r'𝄐', text)
         text = re.sub(r'\\clef\s"?(\w+)"?\s', do_clef, text)
         text = re.sub(r'\^"([^"]+)"', r'«w:\g<1>»', text)
         text = re.sub(r'\\instrumentSwitch\s"([^"]+)"', r'«w:\g<1>»', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*([\w\',]+\d*\.*)', r'\g<1>µ', text)
         text = re.sub(r'\\(?:grace|acciaccatura)\s*\{([^\}]+)}', r'[\g<1>]:µ', text)
-        text = re.sub(r'([>a-giqst\d])\s*\\glissando[\(\s]*(\w+)\b\s*\)?', r'\g<1>:gl:\g<2>', text)
         text = re.sub(r'\\downbow\b', r'×Ħ', text)
         text = re.sub(r'\\upbow\b', r'×V', text)
         text = re.sub(r'\\snappizzicato\b', r'×Ỏ', text)
@@ -140,7 +138,7 @@ class LilypondImporter():
         text = re.sub(r'\\trill\b', r'_t', text)
         text = re.sub(r':32\b', r'_ł', text)
         text = re.sub(r'<([^<>]+)>', r'{\g<1>}', text)
-        text = re.sub(r'([a-giqst\',]+\d*-*\s*)\((.+?)\)', r'(\g<1> \g<2>)', text)
+        text = re.sub(r'([a-giqst\',]+\d*\s*[^a-g]*\w*)\(([^\)]+)\)', r'(\g<1> \g<2>)', text)
         text = re.sub(r'([a-giqst\',]+\d*\.*-*\s*)\(', r'(\g<1>', text)
         text = re.sub(r'([a-giqst\',]+\d*\.*)\(\s*~', r'(\g<1> >', text)
         text = re.sub(r'\\([mpfsz<>!]+)', r'«d:\g<1>»', text)
@@ -148,6 +146,7 @@ class LilypondImporter():
         text = text.replace('-+', '×+')
         text = re.sub(r'\s+', r' ', text)
         text = re.sub(r'~', r'>', text)
+        text = re.sub(r'([>a-giqst\d])\s*\\glissando\s*(\w+\s*\)?)', r'\g<1>~ ^\g<2>', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         return text
 

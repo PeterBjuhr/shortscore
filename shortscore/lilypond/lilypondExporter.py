@@ -64,12 +64,12 @@ class LilypondExporter():
             if clef:
                 if 'U' in clef or 'D' in clef:
                     clef = clef.replace('8U', '^8').replace('8D', '_8')
-                    additions.append(f'\clef "{clef}"')
+                    additions.append(f'\\clef "{clef}"')
                 else:
-                    additions.append(f'\clef {clef}')
+                    additions.append(f'\\clef {clef}')
             dynamic = change_dict.get('d')
             if dynamic:
-                additions.append(f'\{dynamic}')
+                additions.append(f'\\{dynamic}')
             word = change_dict.get('w')
             if word:
                 additions.append(f'^"{word}"')
@@ -89,7 +89,7 @@ class LilypondExporter():
         text = re.sub(r'\{([^\}]+)\}', adapt_chord, text)
         text = re.sub(r'\[([^\]]+)\]:(\d+)\\(\d+):?(\d*)\b', r"\\tuplet \g<2>/\g<3> \g<4> {\g<1>}", text)
         text = re.sub(r'(\d+)\\(\d+):\[([^\]]+)\]', r"\\tuplet \g<1>/\g<2> {\g<3>}", text)
-        text = re.sub(r'([a-giqst\d>])\s*:gl:([\w\',]+)\b', r"\g<1> \\glissando( \g<2>)", text)
+        text = re.sub(r'([a-giqst\d>])\s*\~\s*\^\s*([a-g])', r"\g<1> \\glissando \g<2>", text)
         text = re.sub(r'\b([\w\'\,]+\d*\.*)µ', r"\\acciaccatura \g<1>", text)
         text = re.sub(r'\[([^\]]+)\]:µ', r"\\acciaccatura {\g<1>}", text)
         text = text.replace('-·', '-.')
