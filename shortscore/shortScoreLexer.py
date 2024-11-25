@@ -59,9 +59,13 @@ class ShortScoreLexer:
         return bar_of_music
 
     def _is_note(self, char):
+        note = char
         if char == 'x':
-            yield ("unpitched", "".join(self.reader.read_while(use_re=r'[a-g]')))
-            yield ("unpitched_oct", "".join(self.reader.read_while(use_in = "',")))
+            pitch = "".join(self.reader.read_while(use_re=r'[a-g]'))
+            octave = "".join(self.reader.read_while(use_in = "',"))
+            note = pitch + octave
+            yield ("unpitched", pitch)
+            yield ("unpitched_oct", octave)
         elif re.match(r'[a-g]', char):
             alter = "".join(self.reader.read_while(use_re = self.alter_regex))
             octave = "".join(self.reader.read_while(use_in = "',"))
@@ -73,7 +77,7 @@ class ShortScoreLexer:
             if alter:
                 yield ("pitchalter", alter)
             yield ("octave", octave)
-            self.note_cache.add_note(note)
+        self.note_cache.add_note(note)
 
     def _is_duration(self, char):
         if re.match(r'[1-9]', char):
