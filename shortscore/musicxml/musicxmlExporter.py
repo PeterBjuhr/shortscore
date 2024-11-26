@@ -161,7 +161,7 @@ class MusicXMLExporter():
         divs.text = str(divisions)
         if glob:
             self.create_time_node(attr, glob.get('m'))
-            self.create_tempomark(glob.get('t'), glob.get('tt'))
+            self.create_tempomark(glob.get('t'), glob.get('tt'), glob.get('mm'))
             self.create_clef(attr, glob.get('c'))
         self.parser_tree = self.ssc_parser.parse(lexer, bar)
         self.create_nodes_from_parser_objects(self.bar_parent)
@@ -197,7 +197,9 @@ class MusicXMLExporter():
         direction_type = ET.SubElement(direction, 'direction-type')
         return direction_type
 
-    def create_tempomark(self, tempo, tempotext=None):
+    def create_tempomark(self, tempo, tempotext=None, metricmod=None):
+        if metricmod:
+            self.create_metric_modulation(metricmod)
         if tempo:
             beat_unit_dot = False
             beat_unit, per_minute = tempo.split('=')
@@ -216,6 +218,26 @@ class MusicXMLExporter():
                 ET.SubElement(metronome, 'beat-unit-dot')
             pmnode = ET.SubElement(metronome, 'per-minute')
             pmnode.text = per_minute
+
+    def create_metric_modulation(self, metricmod):
+        direction_parent = self.create_direction()
+        metronome = ET.SubElement(direction_parent, 'metronome')
+        mm_values = metricmod.split('=')
+        has_same_values = len(mm_values) == 2 and mm_values[0] == mm_values[1]
+        if not has_same_values:
+            ET.SubElement(metronome, 'metronome-arrows')
+        for index, value in enumerate(mm_values):
+            metronome_note = ET.SubElement(metronome, 'metronome-note')
+            num_dots = value.count('.')
+            value_wo_dots = value.replace('.', '')
+            value_type = Duration.duration_names.get(int(value_wo_dots))
+            metronome_type = ET.SubElement(metronome_note, 'metronome-type')
+            metronome_type.text = value_type
+            for _ in range(num_dots):
+                ET.SubElement(metronome_note, 'metronome-dot')
+            if index != len(mm_values) - 1:
+                metronome_rel = ET.SubElement(metronome, 'metronome-relation')
+                metronome_rel.text = 'equals'
 
     def create_dynamics(self, parent, dynamic):
         if dynamic == '<':
