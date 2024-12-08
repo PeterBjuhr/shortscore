@@ -59,7 +59,7 @@ class LilypondImporter():
             m = re.search(r"\\time\s*([\w\W]+)\b", g)
             if m:
                 glob_dict['m'] = timesign = m.group(1)
-            t = re.search(r"\\tempo\s*(\D+)?(\d+=\d+)", g)
+            t = re.search(r"\\tempo\s*(\D+)?(\d+\.?=\d+)", g)
             if t:
                 text = t.group(1)
                 if text:
@@ -73,7 +73,7 @@ class LilypondImporter():
                     glob_dict['rm'] = 'd'
                 else:
                     glob_dict['rm'] = mark
-            if 's' in g:
+            if g.strip().startswith('s'):
                 for spacer_rest in g.split():
                     spacer_rest = spacer_rest.replace('s', '')
                     spacer_list = spacer_rest.split('*')

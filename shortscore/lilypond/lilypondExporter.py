@@ -35,7 +35,10 @@ class LilypondExporter():
         if 'm' in glob_dict:
             output.append(r"\time " + glob_dict['m'])
         if 't' in glob_dict:
-            output.append(r"\tempo " + glob_dict['t'])
+            if 'tt' in glob_dict:
+                output.append(fr'\tempo "{glob_dict['tt']}" {glob_dict['t']}')
+            else:
+                output.append(r"\tempo " + glob_dict['t'])
         if 'k' in glob_dict:
             output.append(r"\key " + glob_dict['k'])
         if 'rm' in glob_dict:
