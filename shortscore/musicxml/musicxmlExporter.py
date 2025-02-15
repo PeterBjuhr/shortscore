@@ -22,7 +22,8 @@ class MusicXMLExporter():
             'notation': 'notations',
             'articulation': 'articulations',
             'ornament': 'ornaments',
-            'barattr': 'attributes'
+            'barattr': 'attributes',
+            'staffbackup': 'backup'
         }
 
     replaces = ['Start', 'End']

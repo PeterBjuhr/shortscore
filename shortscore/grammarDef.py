@@ -25,6 +25,7 @@ NOTEDEF = """
     TimeModificationStart!|tuplet_ratio|tuplet_end
     TimeModificationEnd!|tuplet_ratio|tuplet_end
     Notehead?|harmonic
+    Staff|
     NotationStart?|tuplet_start,tuplet_end,slur_start,slur_end,tie_start,tie_end,gliss_start,gliss_end,artic,ornament,tech,harmonic,fermata
     ArticulationStart?|artic
     ArticulationEnd?|artic
@@ -78,6 +79,8 @@ NON_NOTES = """
     BarAttrEnd|barattr
     BackupStart|backup
     BackupEnd|backup
+    StaffBackupStart|staffbackup
+    StaffBackupEnd|staffbackup
     ForwardStart|forward
     ForwardEnd|forward
     """

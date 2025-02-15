@@ -24,6 +24,7 @@ class ShortScoreLexer:
             'ornament': self._is_ornament,
             'technical': self._is_technical,
             'backup': self._is_backup,
+            'staffbackup': self._is_staff_backup,
             'barattr': self._is_barattr
             }
         self.note_cache = NoteCache()
@@ -133,6 +134,10 @@ class ShortScoreLexer:
     def _is_backup(self, char):
         if char == '<':
             yield ("backup", char + "".join(self.reader.read_while(use_in='<')))
+
+    def _is_staff_backup(self, char):
+        if char == '↓':
+            yield ("staffbackup", char + "".join(self.reader.read_while(use_in='<')))
 
     def _is_start_end(self, char, description, start_char, end_char):
         enabled_automatic_end = ['>']
