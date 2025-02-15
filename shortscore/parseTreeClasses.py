@@ -4,6 +4,7 @@ import math
 class ParseTreeObject:
     """Abstract class for the parse tree classes"""
     voice = 1
+    staff = 1
     add_onfuncs = []
     skip = False
 
@@ -322,10 +323,14 @@ class TimeModificationEnd(ParseTreeObject):
 class DurationMove(BarTemporals):
     """Representing a duration move"""
     add_onfuncs = ['duration']
+    move_type = None
 
     def set_token(self, token):
         self.token = token
-        ParseTreeObject.voice += 1
+        if self.move_type == 'voice':
+            ParseTreeObject.voice += 1
+        elif self.move_type == 'staff':
+            ParseTreeObject.staff += 1
 
     def get_mxml_value(self):
         if not self.divisions:
@@ -345,6 +350,7 @@ class BackupStart(ParseTreeObject):
 
 class BackupEnd(DurationMove):
     """Representing a duration move backwards"""
+    move_type = 'voice'
 
 
 class ForwardStart(ParseTreeObject):
@@ -353,6 +359,16 @@ class ForwardStart(ParseTreeObject):
 
 class ForwardEnd(DurationMove):
     """Representing a duration move forward"""
+    move_type = 'voice'
+
+
+class StaffBackupStart(ParseTreeObject):
+    """Representing a duration move backwards"""
+
+
+class StaffBackupEnd(DurationMove):
+    """Representing a duration move backwards"""
+    move_type = 'staff'
 
 
 class Voice(ParseTreeObject):
@@ -360,6 +376,13 @@ class Voice(ParseTreeObject):
 
     def get_mxml_value(self):
         return str(ParseTreeObject.voice)
+
+
+class Staff(ParseTreeObject):
+    """Representing a staff number"""
+
+    def get_mxml_value(self):
+        return str(ParseTreeObject.staff)
 
 
 class NotationStart(ParseTreeObject):

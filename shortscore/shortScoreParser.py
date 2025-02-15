@@ -20,6 +20,7 @@ class ShortScoreParser:
     def init_bar(self):
         BarTemporals.durations = []
         ParseTreeObject.voice = 1
+        ParseTreeObject.staff = 1
         Pitch.language = self.language
         self.ahead_tokens = []
 
