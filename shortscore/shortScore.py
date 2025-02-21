@@ -206,6 +206,9 @@ class ShortScore():
             partname = self.mxml_exporter.setup_part(part)
             for num, bar in enumerate(self.score[part]):
                 glob_org = self.score[self.glob][num]
+                meter = glob_org.get('m') if glob_org else None
+                if meter:
+                    timesign = meter
                 glob = glob_org.copy() if glob_org else {}
                 if num < 1:
                     instrument = partname.replace(' I', '').replace(' V', '').strip()
@@ -216,7 +219,7 @@ class ShortScore():
                 if bar:
                     self.mxml_exporter.export_bar(glob, bar, bar_number)
                 else:
-                    self.mxml_exporter.make_multi_rest(bar_number, glob)
+                    self.mxml_exporter.make_full_bar_rest(bar_number, glob, timesign)
         self.mxml_exporter.write_to_file(xml_file)
 
     def import_from_mxml(self, xmlfile):

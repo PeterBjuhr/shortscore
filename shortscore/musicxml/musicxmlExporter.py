@@ -48,6 +48,7 @@ class MusicXMLExporter():
         self.tree = ET.ElementTree(self.root)
         self.partlist = ET.SubElement(self.root, 'part-list')
         self.num = 1
+        self.divisions = None
 
     def set_partdef(self, partdef, percdef):
         def remove_prefix(name):
@@ -284,7 +285,32 @@ class MusicXMLExporter():
                 extra_node = ET.SubElement(parent, add_on.replace('_', '-'))
                 extra_node.text = extra_value
 
-    def make_multi_rest(self, bar_number, glob):
+    def make_full_bar_rest(self, bar_number, glob, timesign):
+        def calculate_duration(divisions, timesign):
+            num, den = timesign.split('/')
+            timesign_ratio = int(num) / int(den)
+            return timesign_ratio * 4 * divisions
+
+        divisions = self.divisions
+        if not divisions:
+            self.divisions = divisions = 4
+        self.bar_parent = ET.SubElement(self.part, 'measure')
+        self.bar_parent.set('number', str(bar_number))
+        attr = ET.SubElement(self.bar_parent, 'attributes')
+        divs = ET.SubElement(attr, 'divisions')
+        divs.text = str(divisions)
+        if glob:
+            self.create_time_node(attr, glob.get('m'))
+            self.create_tempomark(glob.get('t'), glob.get('tt'))
+            self.create_clef(attr, glob.get('c'))
+        note = ET.SubElement(self.bar_parent, 'note')
+        rest = ET.SubElement(note, 'rest')
+        rest.set('measure', 'yes')
+        duration_num = calculate_duration(divisions, timesign)
+        duration = ET.SubElement(note, 'duration')
+        duration.text = str(int(duration_num))
+
+    def make_multi_rest(self, bar_number, glob, num_bars=1):
         self.bar_parent = ET.SubElement(self.part, 'measure')
         self.bar_parent.set('number', str(bar_number))
         attr = ET.SubElement(self.bar_parent, 'attributes')
@@ -293,7 +319,7 @@ class MusicXMLExporter():
             self.create_clef(attr, glob.get('c'))
         measure_style = ET.SubElement(attr, 'measure-style')
         multiple_rest = ET.SubElement(measure_style, 'multiple-rest')
-        multiple_rest.text = '1'
+        multiple_rest.text = str(num_bars)
 
     def debug_bar(self):
         ET.dump(self.bar_parent)
