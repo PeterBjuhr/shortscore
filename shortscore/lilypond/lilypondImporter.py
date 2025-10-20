@@ -146,7 +146,7 @@ class LilypondImporter():
         text = text.replace('-+', '×+')
         text = re.sub(r'\s+', r' ', text)
         text = re.sub(r'~', r'>', text)
-        text = re.sub(r'([>a-giqst\d])\s*\\glissando\s*(\w+\s*\)?)', r'\g<1>~ ^\g<2>', text)
+        text = re.sub(r'([>a-giqst\',]+\d*\.*)\s*\\glissando\s*(\w+\s*\)?)', r'\g<1>~ ^\g<2>', text)
         text = re.sub(r'\\([a-z]+)\b', r':\g<1>', text)
         return text
 
