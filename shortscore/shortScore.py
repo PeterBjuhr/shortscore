@@ -9,6 +9,8 @@ from .lilypond.lilypondImporter import LilypondImporter
 from .musicxml.musicxmlExporter import MusicXMLExporter
 from .musicxml.musicxmlImporter import MusicXMLImporter
 
+BASS_CLEF_NAME = 'bass'
+
 class ShortScore():
     """
     Representing a shortscore
@@ -203,7 +205,8 @@ class ShortScore():
         """Export to MusicXML file"""
         self.mxml_exporter.set_partdef(self.partdef, self.percdef)
         for part in self.parts:
-            partname = self.mxml_exporter.setup_part(part)
+            partname, instr_names = self.mxml_exporter.setup_part(part)
+            short_name, _, _, _ = instr_names[0]
             for num, bar in enumerate(self.score[part]):
                 glob_org = self.score[self.glob][num]
                 meter = glob_org.get('m') if glob_org else None
@@ -211,6 +214,8 @@ class ShortScore():
                     timesign = meter
                 glob = glob_org.copy() if glob_org else {}
                 if num < 1:
+                    if short_name.endswith('l'):
+                        glob['c'] = BASS_CLEF_NAME
                     instrument = partname.replace(' I', '').replace(' V', '').strip()
                     default_clef = default_clefs.get(instrument.lower())
                     if default_clef:
