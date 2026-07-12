@@ -56,17 +56,38 @@ class MusicXMLExporter():
                 if char.isupper():
                     return name[i:]
 
-        def convert_camel_case(name):
-            return ''.join(' ' + n if n.isupper() else n for n in name).strip()
+        def convert_camel_case2words(name):
+            words = []
+            lowered = False
+            for char in name:
+                if not words or (char.isupper() and lowered):
+                    words.append(char)
+                    lowered = False
+                    continue
+                if not char.isupper():
+                    lowered = True
+                words[-1] += char
+            return " ".join(words)
 
         def remove_roman_numerals(name):
             return " ".join(n for n in name.split() if n not in ['I', 'V', 'X'])
 
+        def collect_instr_names(replaces):
+            parts_dict = {}
+            instrument_dict = {}
+            for k, v in partdef.items():
+                without_prefix = remove_prefix(v)
+                after_replaces = self.do_replaces(without_prefix, replaces)
+                in_words = convert_camel_case2words(after_replaces)
+                without_numerals = remove_roman_numerals(in_words)
+                parts_dict[k] = in_words
+                instrument_dict[k] = [(k, without_numerals, None, False, without_prefix)]
+            for key, additional_instruments in percdef.items():
+                instrument_dict[key] = [t + (True,'') for t in additional_instruments]
+            return parts_dict, instrument_dict
+
         replaces = ['Lh', 'Rh', 'Solo']
-        self.partnames = {k: convert_camel_case(self.do_replaces(remove_prefix(v), replaces)) for k, v in partdef.items()}
-        self.instrument_names = {k: [(k, remove_roman_numerals(v), None, False)] for k, v in self.partnames.items()}
-        for key, additional_instruments in percdef.items():
-           self.instrument_names[key] = [t + (True,) for t in additional_instruments]
+        self.partnames, self.instrument_names = collect_instr_names(replaces)
         self.midi_instruments = main()
         self.instrument_sounds = get_dict()
 
@@ -80,10 +101,10 @@ class MusicXMLExporter():
         score_part.set('id', 'P' + str(num))
         part_name = ET.SubElement(score_part, 'part-name')
         part_name.text = partname
-        for _, longname, _, is_percussion in instr_names:
+        for _, longname, _, is_percussion, _ in instr_names:
             self.setup_score_instrument(score_part, longname, is_percussion)
         self.num = num
-        for display_note, longname, _, is_percussion in instr_names:
+        for display_note, longname, _, is_percussion, _ in instr_names:
             if is_percussion:
                 self.current_percussion[display_note] = f'P{self.num}-X{self.num}'
             self.setup_midi_instrument(score_part, longname, is_percussion)

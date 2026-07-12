@@ -10,6 +10,7 @@ from .musicxml.musicxmlExporter import MusicXMLExporter
 from .musicxml.musicxmlImporter import MusicXMLImporter
 
 BASS_CLEF_NAME = 'bass'
+LEFT_HAND_PART = 'Lh'
 
 class ShortScore():
     """
@@ -206,7 +207,7 @@ class ShortScore():
         self.mxml_exporter.set_partdef(self.partdef, self.percdef)
         for part in self.parts:
             partname, instr_names = self.mxml_exporter.setup_part(part)
-            short_name, _, _, _ = instr_names[0]
+            _, _, _, _, orgname = instr_names[0]
             for num, bar in enumerate(self.score[part]):
                 glob_org = self.score[self.glob][num]
                 meter = glob_org.get('m') if glob_org else None
@@ -214,7 +215,7 @@ class ShortScore():
                     timesign = meter
                 glob = glob_org.copy() if glob_org else {}
                 if num < 1:
-                    if short_name.endswith('l'):
+                    if orgname.endswith(LEFT_HAND_PART):
                         glob['c'] = BASS_CLEF_NAME
                     instrument = partname.replace(' I', '').replace(' V', '').strip()
                     default_clef = default_clefs.get(instrument.lower())
