@@ -1,3 +1,5 @@
+import re
+
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
@@ -70,7 +72,7 @@ class MusicXMLExporter():
             return " ".join(words)
 
         def remove_roman_numerals(name):
-            return " ".join(n for n in name.split() if n not in ['I', 'V', 'X'])
+            return re.sub(r"\s+(?=[IVX])(?:XX|X?(?:IX|IV|V?I{0,3}))$", "", name.strip())
 
         def collect_instr_names(replaces):
             parts_dict = {}
